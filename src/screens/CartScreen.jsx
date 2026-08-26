@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useStore } from '../context/StoreContext';
+import { getAssetUrl } from '../utils/assetHelper';
 import { 
   ShoppingCart, 
   Trash2, 
@@ -136,10 +137,10 @@ export const CartScreen = () => {
               >
                 {/* Product Thumb */}
                 <img 
-                  src={p.imageResName || "/images/img_phones_1786037591338.jpg"} 
+                  src={getAssetUrl(p.imageResName || "/images/img_phones_1786037591338.jpg")} 
                   alt={pName}
                   className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover bg-black/5 flex-shrink-0"
-                  onError={(e) => { e.target.src = "/images/img_phones_1786037591338.jpg"; }}
+                  onError={(e) => { e.target.src = getAssetUrl("/images/img_phones_1786037591338.jpg"); }}
                 />
 
                 {/* Details */}

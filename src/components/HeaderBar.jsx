@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useStore } from '../context/StoreContext';
+import { getAssetUrl } from '../utils/assetHelper';
 import { CountryFlag } from './CountryFlag';
 import { 
   ShoppingCart, 
@@ -41,7 +42,7 @@ export const HeaderBar = () => {
           className="flex items-center gap-2.5 cursor-pointer hover:opacity-90 transition-opacity flex-shrink-0"
         >
           <img 
-            src="/images/img_app_icon_1786037564036.jpg" 
+            src={getAssetUrl("/images/img_app_icon_1786037564036.jpg")} 
             alt="Noor Store" 
             className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover shadow-sm border"
             style={{ borderColor: themeColors.border }}

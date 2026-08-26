@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useStore } from '../context/StoreContext';
+import { getAssetUrl } from '../utils/assetHelper';
 import { 
   Sparkles, 
   X, 
@@ -191,10 +192,10 @@ export const AIAssistantModal = () => {
                         }}
                       >
                         <img 
-                          src={product.imageResName || "/images/img_phones_1786037591338.jpg"} 
+                          src={getAssetUrl(product.imageResName || "/images/img_phones_1786037591338.jpg")} 
                           alt={pName}
                           className="w-12 h-12 rounded-xl object-cover flex-shrink-0 bg-black/5"
-                          onError={(e) => { e.target.src = "/images/img_phones_1786037591338.jpg"; }}
+                          onError={(e) => { e.target.src = getAssetUrl("/images/img_phones_1786037591338.jpg"); }}
                         />
 
                         <div className="flex-1 min-w-0" onClick={() => handleProductSelect(product)}>

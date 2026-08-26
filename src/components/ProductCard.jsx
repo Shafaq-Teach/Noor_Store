@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useStore } from '../context/StoreContext';
+import { getAssetUrl } from '../utils/assetHelper';
 import { 
   Heart, 
   ThumbsUp, 
@@ -53,10 +54,10 @@ export const ProductCard = ({ product }) => {
           className="relative w-full aspect-square rounded-2xl overflow-hidden cursor-pointer bg-black/5 flex items-center justify-center mb-2.5"
         >
           <img 
-            src={product.imageResName || "/images/img_phones_1786037591338.jpg"} 
+            src={getAssetUrl(product.imageResName || "/images/img_phones_1786037591338.jpg")} 
             alt={name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            onError={(e) => { e.target.src = "/images/img_phones_1786037591338.jpg"; }}
+            onError={(e) => { e.target.src = getAssetUrl("/images/img_phones_1786037591338.jpg"); }}
           />
 
           {/* Featured Ribbon / Discount Tag */}

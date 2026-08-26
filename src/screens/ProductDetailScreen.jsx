@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useStore } from '../context/StoreContext';
+import { getAssetUrl } from '../utils/assetHelper';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -57,8 +58,9 @@ export const ProductDetailScreen = () => {
   const specs = language === 'uyghur' ? p.specsUg : language === 'arabic' ? p.specsAr : p.specsEn;
 
   // Images list
-  const allImages = [p.imageResName, p.imageResName2, p.imageResName3].filter(Boolean);
-  if (allImages.length === 0) allImages.push('/images/img_phones_1786037591338.jpg');
+  const rawImages = [p.imageResName, p.imageResName2, p.imageResName3].filter(Boolean);
+  if (rawImages.length === 0) rawImages.push('/images/img_phones_1786037591338.jpg');
+  const allImages = rawImages.map(img => getAssetUrl(img));
 
   const hasDiscount = p.originalPrice && p.originalPrice > p.price;
   const discountPercent = hasDiscount ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) : 0;
@@ -155,7 +157,7 @@ export const ProductDetailScreen = () => {
               src={allImages[activeImageIdx] || allImages[0]} 
               alt={name}
               className="w-full h-full object-cover transition-all duration-300"
-              onError={(e) => { e.target.src = "/images/img_phones_1786037591338.jpg"; }}
+              onError={(e) => { e.target.src = getAssetUrl("/images/img_phones_1786037591338.jpg"); }}
             />
 
             {p.isFeatured && (

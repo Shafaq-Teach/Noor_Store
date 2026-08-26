@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { initialCategories, initialProducts, initialCoupons, initialReviews, initialNasheedTracks } from '../data/initialData';
 import { useTheme } from './ThemeContext';
+import { getAssetUrl } from '../utils/assetHelper';
 import confetti from 'canvas-confetti';
 
 const StoreContext = createContext(null);
@@ -461,7 +462,7 @@ export const StoreProvider = ({ children }) => {
   // Nasheed Player Controls
   const playNasheed = (track) => {
     setCurrentTrack(track);
-    audioRef.current.src = track.audioSrc;
+    audioRef.current.src = getAssetUrl(track.audioSrc);
     audioRef.current.play().then(() => {
       setIsPlayingNasheed(true);
     }).catch(err => {
@@ -476,7 +477,7 @@ export const StoreProvider = ({ children }) => {
       setIsPlayingNasheed(false);
     } else {
       if (!audioRef.current.src || audioRef.current.src.endsWith('/')) {
-        audioRef.current.src = currentTrack.audioSrc;
+        audioRef.current.src = getAssetUrl(currentTrack.audioSrc);
       }
       audioRef.current.play().then(() => {
         setIsPlayingNasheed(true);

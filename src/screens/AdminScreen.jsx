@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useStore } from '../context/StoreContext';
+import { getAssetUrl } from '../utils/assetHelper';
 import { 
   ShieldCheck, 
   Lock, 
@@ -527,7 +528,7 @@ export const AdminScreen = () => {
                   style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <img src={prod.imageResName} alt={pName} className="w-12 h-12 rounded-xl object-cover" />
+                    <img src={getAssetUrl(prod.imageResName)} alt={pName} className="w-12 h-12 rounded-xl object-cover" />
                     <div className="min-w-0">
                       <h4 className="text-xs sm:text-sm font-bold truncate">{pName}</h4>
                       <span className="text-[11px] opacity-70 block">{prod.brand} | {prod.categoryId}</span>

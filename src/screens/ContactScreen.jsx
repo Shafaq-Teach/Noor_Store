@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTheme } from '../context/ThemeContext';
+import { getAssetUrl } from '../utils/assetHelper';
 import { 
   PhoneCall, 
   Send, 
@@ -42,7 +43,7 @@ export const ContactScreen = () => {
       >
         <div className="flex items-center gap-3 border-b pb-4" style={{ borderColor: themeColors.border }}>
           <img 
-            src="/images/img_app_icon_1786037564036.jpg" 
+            src={getAssetUrl("/images/img_app_icon_1786037564036.jpg")} 
             alt="Noor Store" 
             className="w-14 h-14 rounded-2xl object-cover shadow-sm border"
             style={{ borderColor: themeColors.border }}

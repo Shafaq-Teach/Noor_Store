@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useStore } from '../context/StoreContext';
+import { getAssetUrl } from '../utils/assetHelper';
 import { 
   Scale, 
   Trash2, 
@@ -97,10 +98,10 @@ export const CompareScreen = () => {
                       className="w-full aspect-square rounded-2xl overflow-hidden bg-black/5 cursor-pointer flex items-center justify-center"
                     >
                       <img 
-                        src={product.imageResName || "/images/img_phones_1786037591338.jpg"} 
+                        src={getAssetUrl(product.imageResName || "/images/img_phones_1786037591338.jpg")} 
                         alt={pName}
                         className="w-full h-full object-cover hover:scale-105 transition-transform"
-                        onError={(e) => { e.target.src = "/images/img_phones_1786037591338.jpg"; }}
+                        onError={(e) => { e.target.src = getAssetUrl("/images/img_phones_1786037591338.jpg"); }}
                       />
                     </div>
 

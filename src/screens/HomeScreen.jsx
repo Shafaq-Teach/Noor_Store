@@ -3,6 +3,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useStore } from '../context/StoreContext';
 import { ProductCard } from '../components/ProductCard';
 import { NasheedPlayer } from '../components/NasheedPlayer';
+import { getAssetUrl } from '../utils/assetHelper';
 import { 
   Sparkles, 
   ArrowRight, 
@@ -70,7 +71,7 @@ export const HomeScreen = () => {
         {/* Background Banner Image */}
         <div 
           className="absolute inset-0 bg-cover bg-center transition-transform duration-700 hover:scale-105"
-          style={{ backgroundImage: `url('/images/img_east_turkestan_banner_1786190275040.jpg')` }}
+          style={{ backgroundImage: `url('${getAssetUrl('/images/img_east_turkestan_banner_1786190275040.jpg')}')` }}
         />
         {/* Dark Gradient Overlay for optimal readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/30" />
@@ -79,7 +80,7 @@ export const HomeScreen = () => {
         <div className="relative z-10 flex items-center justify-between">
           <div className="flex items-center gap-2 p-1 px-2.5 rounded-2xl bg-black/40 backdrop-blur-md border border-white/20">
             <img 
-              src="/images/img_phones_1786037591338.jpg" 
+              src={getAssetUrl("/images/img_phones_1786037591338.jpg")} 
               alt="Phones" 
               className="w-7 h-7 rounded-lg object-cover"
             />
@@ -88,7 +89,7 @@ export const HomeScreen = () => {
 
           <div className="flex items-center gap-2 p-1 px-2.5 rounded-2xl bg-black/40 backdrop-blur-md border border-white/20">
             <img 
-              src="/images/img_tablets_1786037603482.jpg" 
+              src={getAssetUrl("/images/img_tablets_1786037603482.jpg")} 
               alt="Tablets" 
               className="w-7 h-7 rounded-lg object-cover"
             />
