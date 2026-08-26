@@ -1,0 +1,956 @@
+import React, { useState } from 'react';
+import { useTheme } from '../context/ThemeContext';
+import { useStore } from '../context/StoreContext';
+import { 
+  ShieldCheck, 
+  Lock, 
+  KeyRound, 
+  LogOut, 
+  DollarSign, 
+  Boxes, 
+  ShoppingBag, 
+  Clock, 
+  CheckCircle2, 
+  AlertTriangle, 
+  TrendingUp, 
+  Plus, 
+  Edit3, 
+  Trash2, 
+  Copy, 
+  Send, 
+  Share2, 
+  Sparkles, 
+  Tag, 
+  MessageSquare, 
+  Check, 
+  X,
+  Layers,
+  ChevronDown
+} from 'lucide-react';
+
+export const AdminScreen = () => {
+  const { currentTheme, themeColors, language, isDarkMode, t } = useTheme();
+  const { 
+    products, 
+    orders, 
+    coupons, 
+    reviews, 
+    adminPin, 
+    setAdminPin, 
+    isAdminLoggedIn, 
+    setIsAdminLoggedIn,
+    updateOrderStatus,
+    deleteOrder,
+    notifyCustomer,
+    updateProductPrice,
+    toggleStock,
+    toggleFeatured,
+    deleteProduct,
+    addProduct,
+    addCoupon,
+    deleteCoupon,
+    replyToReview,
+    deleteReview,
+    generateSalesReport,
+    categories
+  } = useStore();
+
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState(null);
+  const [activeTab, setActiveTab] = useState('analytics'); // 'analytics' | 'orders' | 'products' | 'coupons' | 'reviews'
+
+  // Change PIN modal state
+  const [showChangePinModal, setShowChangePinModal] = useState(false);
+  const [oldPin, setOldPin] = useState('');
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [changePinMsg, setChangePinMsg] = useState(null);
+
+  // Add Product form state
+  const [showAddProductModal, setShowAddProductModal] = useState(false);
+  const [newProdNameUg, setNewProdNameUg] = useState('');
+  const [newProdNameAr, setNewProdNameAr] = useState('');
+  const [newProdNameEn, setNewProdNameEn] = useState('');
+  const [newProdDescUg, setNewProdDescUg] = useState('');
+  const [newProdDescAr, setNewProdDescAr] = useState('');
+  const [newProdDescEn, setNewProdDescEn] = useState('');
+  const [newProdPrice, setNewProdPrice] = useState('');
+  const [newProdCat, setNewProdCat] = useState('phones');
+  const [newProdBrand, setNewProdBrand] = useState('Apple');
+  const [newProdImg1, setNewProdImg1] = useState('/images/img_phones_1786037591338.jpg');
+  const [newProdImg2, setNewProdImg2] = useState('');
+  const [newProdImg3, setNewProdImg3] = useState('');
+  const [newProdFeatured, setNewProdFeatured] = useState(false);
+  const [newProdInStock, setNewProdInStock] = useState(true);
+
+  // Add Coupon state
+  const [showAddCouponModal, setShowAddCouponModal] = useState(false);
+  const [newCouponCode, setNewCouponCode] = useState('');
+  const [newCouponType, setNewCouponType] = useState('percent'); // 'percent' | 'fixed'
+  const [newCouponVal, setNewCouponVal] = useState('');
+  const [newCouponMinSpend, setNewCouponMinSpend] = useState('0');
+  const [newCouponDescUg, setNewCouponDescUg] = useState('');
+
+  // Reply review state
+  const [replyingReviewId, setReplyingReviewId] = useState(null);
+  const [replyText, setReplyText] = useState('');
+
+  // Quick edit price state
+  const [editingPriceId, setEditingPriceId] = useState(null);
+  const [quickPriceVal, setQuickPriceVal] = useState('');
+
+  const [copiedReport, setCopiedReport] = useState(false);
+
+  // Auth
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (pinInput.trim() === adminPin) {
+      setIsAdminLoggedIn(true);
+      setPinError(null);
+      setPinInput('');
+    } else {
+      setPinError(t('wrong_pin'));
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAdminLoggedIn(false);
+  };
+
+  const handleChangePinSubmit = (e) => {
+    e.preventDefault();
+    if (oldPin !== adminPin) {
+      setChangePinMsg({ type: 'error', text: t('current_pin_wrong') });
+      return;
+    }
+    if (!newPin.trim() || newPin !== confirmPin) {
+      setChangePinMsg({ type: 'error', text: t('pin_mismatch') });
+      return;
+    }
+    setAdminPin(newPin.trim());
+    setChangePinMsg({ type: 'success', text: t('pin_changed_success') });
+    setTimeout(() => {
+      setShowChangePinModal(false);
+      setOldPin('');
+      setNewPin('');
+      setConfirmPin('');
+      setChangePinMsg(null);
+    }, 1500);
+  };
+
+  // Add Product Submit
+  const handleAddProductSubmit = (e) => {
+    e.preventDefault();
+    if (!newProdNameUg.trim() && !newProdNameEn.trim()) return;
+
+    const primaryName = newProdNameUg.trim() || newProdNameAr.trim() || newProdNameEn.trim();
+    const primaryDesc = newProdDescUg.trim() || newProdDescAr.trim() || newProdDescEn.trim();
+
+    addProduct({
+      nameUg: newProdNameUg.trim() || primaryName,
+      nameAr: newProdNameAr.trim() || primaryName,
+      nameEn: newProdNameEn.trim() || primaryName,
+      descriptionUg: newProdDescUg.trim() || primaryDesc,
+      descriptionAr: newProdDescAr.trim() || primaryDesc,
+      descriptionEn: newProdDescEn.trim() || primaryDesc,
+      price: Number(newProdPrice) || 0,
+      originalPrice: Number(newProdPrice) * 1.1,
+      categoryId: newProdCat,
+      brand: newProdBrand,
+      imageResName: newProdImg1.trim() || '/images/img_phones_1786037591338.jpg',
+      imageResName2: newProdImg2.trim(),
+      imageResName3: newProdImg3.trim(),
+      isFeatured: newProdFeatured,
+      inStock: newProdInStock,
+      specsUg: `Brand: ${newProdBrand} | Category: ${newProdCat}`,
+      specsAr: `الماركة: ${newProdBrand} | الفئة: ${newProdCat}`,
+      specsEn: `Brand: ${newProdBrand} | Category: ${newProdCat}`
+    });
+
+    setShowAddProductModal(false);
+    setNewProdNameUg('');
+    setNewProdPrice('');
+  };
+
+  // Add Coupon Submit
+  const handleAddCouponSubmit = (e) => {
+    e.preventDefault();
+    if (!newCouponCode.trim()) return;
+
+    addCoupon({
+      code: newCouponCode.trim().toUpperCase(),
+      discountPercent: newCouponType === 'percent' ? Number(newCouponVal) : 0,
+      discountAmount: newCouponType === 'fixed' ? Number(newCouponVal) : 0,
+      minSpend: Number(newCouponMinSpend) || 0,
+      descUg: newCouponDescUg.trim() || `${newCouponCode} ئېتىبار كودى`,
+      descAr: `كود خصم ${newCouponCode}`,
+      descEn: `Discount code ${newCouponCode}`
+    });
+
+    setShowAddCouponModal(false);
+    setNewCouponCode('');
+    setNewCouponVal('');
+  };
+
+  const handleCopyReport = () => {
+    const report = generateSalesReport();
+    navigator.clipboard.writeText(report);
+    setCopiedReport(true);
+    setTimeout(() => setCopiedReport(false), 2000);
+  };
+
+  // Calculations for KPI
+  const totalSalesRevenue = orders.reduce((sum, o) => sum + (o.status !== 'Cancelled' ? o.totalAmount : 0), 0);
+  const totalInventoryValue = products.reduce((sum, p) => sum + (p.price * 5), 0);
+  const pendingOrdersCount = orders.filter(o => o.status === 'Pending' || o.status === 'Processing').length;
+  const completedOrdersCount = orders.filter(o => o.status === 'Completed').length;
+  const outOfStockCount = products.filter(p => !p.inStock).length;
+
+  // Unauthenticated PIN Form
+  if (!isAdminLoggedIn) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center p-4">
+        <div 
+          className="w-full max-w-sm rounded-3xl p-6 sm:p-8 border shadow-xl text-center space-y-5 animate-in zoom-in-95"
+          style={{
+            backgroundColor: themeColors.surface,
+            borderColor: themeColors.border,
+            color: themeColors.textPrimary
+          }}
+        >
+          <div 
+            className="w-16 h-16 rounded-3xl mx-auto flex items-center justify-center text-white shadow-lg"
+            style={{ background: `linear-gradient(135deg, ${currentTheme.primary}, ${currentTheme.secondary})` }}
+          >
+            <ShieldCheck className="w-8 h-8" />
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold" style={{ color: currentTheme.primary }}>
+              {t('admin_login')}
+            </h3>
+            <p className="text-xs opacity-75 mt-1" style={{ color: themeColors.textSecondary }}>
+              {t('enter_pin')}
+            </p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-3">
+            <input 
+              type="password"
+              value={pinInput}
+              onChange={(e) => setPinInput(e.target.value)}
+              placeholder={t('pin_placeholder')}
+              className="w-full px-4 py-3 rounded-2xl text-center text-lg font-mono tracking-widest border focus:outline-none focus:ring-2"
+              style={{
+                backgroundColor: themeColors.surfaceVariant,
+                borderColor: themeColors.border,
+                ringColor: currentTheme.primary
+              }}
+              maxLength={8}
+              autoFocus
+            />
+
+            {pinError && (
+              <p className="text-xs text-rose-500 font-bold">{pinError}</p>
+            )}
+
+            <button
+              type="submit"
+              className="w-full py-3 rounded-2xl text-white font-bold text-sm shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all"
+              style={{ backgroundColor: currentTheme.primary }}
+            >
+              {t('login')}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5 pb-24 animate-in fade-in max-w-6xl mx-auto">
+      {/* Top Admin Header */}
+      <div 
+        className="rounded-3xl p-4 sm:p-5 border shadow-md flex flex-wrap items-center justify-between gap-3"
+        style={{
+          backgroundColor: themeColors.surface,
+          borderColor: themeColors.border,
+          color: themeColors.textPrimary
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <div 
+            className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md"
+            style={{ background: `linear-gradient(135deg, ${currentTheme.primary}, ${currentTheme.secondary})` }}
+          >
+            <ShieldCheck className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-base sm:text-lg font-bold leading-tight" style={{ color: currentTheme.primary }}>
+              {t('admin_control_center')}
+            </h2>
+            <p className="text-xs opacity-75" style={{ color: themeColors.textSecondary }}>
+              PIN: **** ({t('system_info')})
+            </p>
+          </div>
+        </div>
+
+        {/* Header Right Actions */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowChangePinModal(true)}
+            className="p-2 px-3 rounded-2xl border text-xs font-semibold flex items-center gap-1.5 hover:opacity-80 transition-opacity"
+            style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+          >
+            <KeyRound className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{t('change_pin')}</span>
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="p-2 px-3 rounded-2xl border text-xs font-semibold flex items-center gap-1.5 text-rose-500 hover:bg-rose-500/10 transition-colors"
+            style={{ borderColor: themeColors.border }}
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>{t('logout')}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Admin Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+        {[
+          { id: 'analytics', label: t('analytics_tab'), icon: TrendingUp },
+          { id: 'orders', label: `${t('order')} (${orders.length})`, icon: ShoppingBag },
+          { id: 'products', label: `${t('products')} (${products.length})`, icon: Layers },
+          { id: 'coupons', label: `${t('manage_coupons')} (${coupons.length})`, icon: Tag },
+          { id: 'reviews', label: `${t('reviews')} (${reviews.length})`, icon: MessageSquare },
+        ].map(tab => {
+          const Icon = tab.icon;
+          const isSelected = activeTab === tab.id;
+
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap shadow-xs border transition-all flex items-center gap-1.5 ${
+                isSelected ? 'shadow-md scale-102 text-white' : 'hover:opacity-80'
+              }`}
+              style={{
+                backgroundColor: isSelected ? currentTheme.primary : themeColors.surface,
+                borderColor: isSelected ? currentTheme.primary : themeColors.border,
+                color: isSelected ? '#FFFFFF' : themeColors.textPrimary
+              }}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* TAB 1: ANALYTICS & STATS */}
+      {activeTab === 'analytics' && (
+        <div className="space-y-4 animate-in fade-in">
+          {/* KPI Cards Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div 
+              className="p-4 rounded-3xl border shadow-sm space-y-1.5"
+              style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+            >
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-emerald-500/15 text-emerald-600">
+                <DollarSign className="w-4 h-4" />
+              </div>
+              <span className="text-[11px] opacity-70 block">{t('total_sales_revenue')}</span>
+              <h3 className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400">
+                ¥{totalSalesRevenue.toFixed(2)}
+              </h3>
+            </div>
+
+            <div 
+              className="p-4 rounded-3xl border shadow-sm space-y-1.5"
+              style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+            >
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-sky-500/15 text-sky-600">
+                <Boxes className="w-4 h-4" />
+              </div>
+              <span className="text-[11px] opacity-70 block">{t('total_inventory_value')}</span>
+              <h3 className="text-lg sm:text-xl font-black text-sky-600 dark:text-sky-400">
+                ¥{totalInventoryValue.toFixed(2)}
+              </h3>
+            </div>
+
+            <div 
+              className="p-4 rounded-3xl border shadow-sm space-y-1.5"
+              style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+            >
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-amber-500/15 text-amber-600">
+                <Clock className="w-4 h-4" />
+              </div>
+              <span className="text-[11px] opacity-70 block">{t('pending_orders')}</span>
+              <h3 className="text-lg sm:text-xl font-black text-amber-600 dark:text-amber-400">
+                {pendingOrdersCount} / {orders.length}
+              </h3>
+            </div>
+
+            <div 
+              className="p-4 rounded-3xl border shadow-sm space-y-1.5"
+              style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+            >
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-rose-500/15 text-rose-600">
+                <AlertTriangle className="w-4 h-4" />
+              </div>
+              <span className="text-[11px] opacity-70 block">{t('low_stock_warning')}</span>
+              <h3 className="text-lg sm:text-xl font-black text-rose-600 dark:text-rose-400">
+                {outOfStockCount}
+              </h3>
+            </div>
+          </div>
+
+          {/* Daily Sales Report Exporter */}
+          <div 
+            className="p-5 rounded-3xl border shadow-md flex items-center justify-between gap-4"
+            style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+          >
+            <div>
+              <h4 className="text-sm font-bold">{t('share_report')}</h4>
+              <p className="text-xs opacity-75 mt-0.5" style={{ color: themeColors.textSecondary }}>
+                {t('share_report_desc')}
+              </p>
+            </div>
+
+            <button
+              onClick={handleCopyReport}
+              className="p-2.5 px-4 rounded-2xl text-white font-bold text-xs shadow-md flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all flex-shrink-0"
+              style={{ backgroundColor: currentTheme.primary }}
+            >
+              {copiedReport ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              <span>{copiedReport ? t('invoice_copied') : t('share')}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: ORDERS MANAGEMENT */}
+      {activeTab === 'orders' && (
+        <div className="space-y-3 animate-in fade-in">
+          {orders.map(order => (
+            <div 
+              key={order.id}
+              className="p-4 rounded-3xl border shadow-sm space-y-3"
+              style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-2.5" style={{ borderColor: themeColors.border }}>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-sm" style={{ color: currentTheme.primary }}>
+                    #{order.id}
+                  </span>
+                  <span className="text-xs font-semibold">{order.customerName} ({order.customerPhone})</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] opacity-60">{order.date}</span>
+                  <button
+                    onClick={() => deleteOrder(order.id)}
+                    className="p-1 text-gray-400 hover:text-rose-500"
+                    title={t('delete_order')}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Summary */}
+              <pre className="text-xs font-sans whitespace-pre-wrap leading-relaxed opacity-90">
+                {order.orderSummary}
+              </pre>
+
+              {order.note && (
+                <p className="text-xs italic opacity-75">
+                  📝 {order.note}
+                </p>
+              )}
+
+              {/* Status Selector & WhatsApp Notifier */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t" style={{ borderColor: themeColors.border }}>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold opacity-75">{t('order_status')}:</span>
+                  <select
+                    value={order.status}
+                    onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                    className="px-2.5 py-1 rounded-xl text-xs font-bold border focus:outline-none cursor-pointer"
+                    style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+                  >
+                    <option value="Pending">⏳ Pending</option>
+                    <option value="Processing">📦 Processing</option>
+                    <option value="Shipped">🚚 Shipped</option>
+                    <option value="Completed">✅ Completed</option>
+                    <option value="Cancelled">❌ Cancelled</option>
+                  </select>
+                </div>
+
+                <button
+                  onClick={() => notifyCustomer(order, order.status)}
+                  className="p-2 px-3 rounded-xl bg-green-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs hover:scale-102 transition-all"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>{t('notify_customer')}</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* TAB 3: PRODUCTS MANAGEMENT */}
+      {activeTab === 'products' && (
+        <div className="space-y-4 animate-in fade-in">
+          <div className="flex justify-end">
+            <button
+              onClick={() => setShowAddProductModal(true)}
+              className="p-2.5 px-4 rounded-2xl text-white font-bold text-xs shadow-md flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all"
+              style={{ backgroundColor: currentTheme.primary }}
+            >
+              <Plus className="w-4 h-4" />
+              <span>{t('add_product')}</span>
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {products.map(prod => {
+              const pName = language === 'uyghur' ? prod.nameUg : language === 'arabic' ? prod.nameAr : prod.nameEn;
+
+              return (
+                <div 
+                  key={prod.id}
+                  className="p-3 sm:p-4 rounded-3xl border shadow-sm flex flex-wrap items-center justify-between gap-3"
+                  style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img src={prod.imageResName} alt={pName} className="w-12 h-12 rounded-xl object-cover" />
+                    <div className="min-w-0">
+                      <h4 className="text-xs sm:text-sm font-bold truncate">{pName}</h4>
+                      <span className="text-[11px] opacity-70 block">{prod.brand} | {prod.categoryId}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {/* In-place price editor */}
+                    {editingPriceId === prod.id ? (
+                      <div className="flex items-center gap-1">
+                        <input 
+                          type="number" 
+                          value={quickPriceVal}
+                          onChange={(e) => setQuickPriceVal(e.target.value)}
+                          className="w-20 px-2 py-1 rounded-lg text-xs border"
+                          style={{ backgroundColor: themeColors.surfaceVariant }}
+                        />
+                        <button 
+                          onClick={() => {
+                            if (quickPriceVal) updateProductPrice(prod.id, quickPriceVal);
+                            setEditingPriceId(null);
+                          }}
+                          className="p-1 text-emerald-500"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setEditingPriceId(prod.id);
+                          setQuickPriceVal(prod.price);
+                        }}
+                        className="text-xs font-bold px-2 py-1 rounded-lg border hover:opacity-80"
+                        style={{ backgroundColor: themeColors.surfaceVariant, color: currentTheme.primary }}
+                      >
+                        ¥{prod.price} ✏️
+                      </button>
+                    )}
+
+                    {/* Stock Toggle */}
+                    <button
+                      onClick={() => toggleStock(prod.id)}
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
+                        prod.inStock ? 'bg-emerald-500/15 text-emerald-600' : 'bg-rose-500/15 text-rose-600'
+                      }`}
+                    >
+                      {prod.inStock ? t('in_stock') : t('out_of_stock')}
+                    </button>
+
+                    {/* Featured Toggle */}
+                    <button
+                      onClick={() => toggleFeatured(prod.id)}
+                      className={`p-1.5 rounded-lg border ${
+                        prod.isFeatured ? 'text-amber-500 border-amber-500' : 'text-gray-400'
+                      }`}
+                      title={t('featured_product_check')}
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                    </button>
+
+                    {/* Delete */}
+                    <button
+                      onClick={() => deleteProduct(prod.id)}
+                      className="p-1.5 text-gray-400 hover:text-rose-500"
+                      title={t('delete_product')}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: COUPONS MANAGEMENT */}
+      {activeTab === 'coupons' && (
+        <div className="space-y-4 animate-in fade-in">
+          <div className="flex justify-end">
+            <button
+              onClick={() => setShowAddCouponModal(true)}
+              className="p-2.5 px-4 rounded-2xl text-white font-bold text-xs shadow-md flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all"
+              style={{ backgroundColor: currentTheme.primary }}
+            >
+              <Plus className="w-4 h-4" />
+              <span>{t('add_coupon')}</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {coupons.map(c => (
+              <div 
+                key={c.code}
+                className="p-4 rounded-3xl border shadow-sm flex items-center justify-between"
+                style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+              >
+                <div>
+                  <span className="font-bold text-sm tracking-wider" style={{ color: currentTheme.primary }}>
+                    {c.code}
+                  </span>
+                  <p className="text-xs opacity-75 mt-0.5">{c.descUg}</p>
+                  <span className="text-[10px] opacity-50 block mt-1">
+                    {t('min_spend_prefix')}: ¥{c.minSpend}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => deleteCoupon(c.code)}
+                  className="p-2 text-gray-400 hover:text-rose-500"
+                  title={t('delete_coupon')}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: REVIEWS MODERATION */}
+      {activeTab === 'reviews' && (
+        <div className="space-y-3 animate-in fade-in">
+          {reviews.map(rev => (
+            <div 
+              key={rev.id}
+              className="p-4 rounded-3xl border shadow-sm space-y-2.5"
+              style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold">{rev.userName}</span>
+                <button
+                  onClick={() => deleteReview(rev.id)}
+                  className="p-1 text-gray-400 hover:text-rose-500"
+                  title="Delete Review"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <p className="text-xs leading-relaxed opacity-90">{rev.comment}</p>
+
+              {/* Admin Reply */}
+              {rev.adminReply ? (
+                <div className="p-2.5 rounded-xl border bg-emerald-500/10 border-emerald-500/20 text-xs">
+                  <span className="font-bold block">{t('admin_reply')}:</span>
+                  <span>{rev.adminReply}</span>
+                </div>
+              ) : replyingReviewId === rev.id ? (
+                <div className="flex gap-2">
+                  <input 
+                    type="text"
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder={t('type_reply')}
+                    className="flex-1 px-3 py-1.5 rounded-xl text-xs border"
+                    style={{ backgroundColor: themeColors.surfaceVariant }}
+                  />
+                  <button
+                    onClick={() => {
+                      if (replyText.trim()) replyToReview(rev.id, replyText);
+                      setReplyingReviewId(null);
+                      setReplyText('');
+                    }}
+                    className="px-3 py-1.5 rounded-xl text-white font-bold text-xs"
+                    style={{ backgroundColor: currentTheme.primary }}
+                  >
+                    {t('reply')}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setReplyingReviewId(rev.id)}
+                  className="text-xs font-semibold underline hover:opacity-80"
+                  style={{ color: currentTheme.primary }}
+                >
+                  {t('reply')}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* CHANGE PIN MODAL */}
+      {showChangePinModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div 
+            className="w-full max-w-sm rounded-3xl p-6 border shadow-2xl space-y-4"
+            style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+          >
+            <div className="flex justify-between items-center">
+              <h3 className="text-sm font-bold flex items-center gap-1.5">
+                <KeyRound className="w-4 h-4" style={{ color: currentTheme.primary }} />
+                {t('change_pin')}
+              </h3>
+              <button onClick={() => setShowChangePinModal(false)}><X className="w-4 h-4" /></button>
+            </div>
+
+            <form onSubmit={handleChangePinSubmit} className="space-y-2.5 text-xs">
+              <input 
+                type="password"
+                value={oldPin}
+                onChange={(e) => setOldPin(e.target.value)}
+                placeholder={t('current_pin')}
+                className="w-full px-3 py-2 rounded-xl border"
+                style={{ backgroundColor: themeColors.surfaceVariant }}
+              />
+              <input 
+                type="password"
+                value={newPin}
+                onChange={(e) => setNewPin(e.target.value)}
+                placeholder={t('new_pin')}
+                className="w-full px-3 py-2 rounded-xl border"
+                style={{ backgroundColor: themeColors.surfaceVariant }}
+              />
+              <input 
+                type="password"
+                value={confirmPin}
+                onChange={(e) => setConfirmPin(e.target.value)}
+                placeholder={t('confirm_pin')}
+                className="w-full px-3 py-2 rounded-xl border"
+                style={{ backgroundColor: themeColors.surfaceVariant }}
+              />
+
+              {changePinMsg && (
+                <p className={`text-xs font-bold ${changePinMsg.type === 'error' ? 'text-rose-500' : 'text-emerald-500'}`}>
+                  {changePinMsg.text}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-xl text-white font-bold shadow-md mt-2"
+                style={{ backgroundColor: currentTheme.primary }}
+              >
+                {t('save')}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ADD PRODUCT MODAL */}
+      {showAddProductModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in overflow-y-auto">
+          <div 
+            className="w-full max-w-lg rounded-3xl p-6 border shadow-2xl space-y-4 my-8"
+            style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+          >
+            <div className="flex justify-between items-center border-b pb-3">
+              <h3 className="text-sm font-bold flex items-center gap-1.5" style={{ color: currentTheme.primary }}>
+                <Plus className="w-4 h-4" />
+                {t('add_product')}
+              </h3>
+              <button onClick={() => setShowAddProductModal(false)}><X className="w-4 h-4" /></button>
+            </div>
+
+            <form onSubmit={handleAddProductSubmit} className="space-y-3 text-xs">
+              <input 
+                type="text"
+                value={newProdNameUg}
+                onChange={(e) => setNewProdNameUg(e.target.value)}
+                placeholder={t('product_name_ug') + " *"}
+                className="w-full px-3 py-2 rounded-xl border"
+                style={{ backgroundColor: themeColors.surfaceVariant }}
+              />
+              <input 
+                type="number"
+                value={newProdPrice}
+                onChange={(e) => setNewProdPrice(e.target.value)}
+                placeholder={t('price') + " (¥) *"}
+                className="w-full px-3 py-2 rounded-xl border"
+                style={{ backgroundColor: themeColors.surfaceVariant }}
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={newProdCat}
+                  onChange={(e) => setNewProdCat(e.target.value)}
+                  className="px-3 py-2 rounded-xl border"
+                  style={{ backgroundColor: themeColors.surfaceVariant }}
+                >
+                  <option value="phones">Phones (تېلېفونلار)</option>
+                  <option value="tablets">Tablets (پەدلەر)</option>
+                  <option value="accessories">Accessories (زاپچاسلار)</option>
+                  <option value="watches">Watches (ئەقلىي سائەتلەر)</option>
+                </select>
+
+                <input 
+                  type="text"
+                  value={newProdBrand}
+                  onChange={(e) => setNewProdBrand(e.target.value)}
+                  placeholder={t('brand')}
+                  className="px-3 py-2 rounded-xl border"
+                  style={{ backgroundColor: themeColors.surfaceVariant }}
+                />
+              </div>
+
+              <textarea 
+                value={newProdDescUg}
+                onChange={(e) => setNewProdDescUg(e.target.value)}
+                placeholder={t('description_ug')}
+                rows="2"
+                className="w-full px-3 py-2 rounded-xl border resize-none"
+                style={{ backgroundColor: themeColors.surfaceVariant }}
+              />
+
+              <input 
+                type="text"
+                value={newProdImg1}
+                onChange={(e) => setNewProdImg1(e.target.value)}
+                placeholder={t('image_1') + " (URL/Path)"}
+                className="w-full px-3 py-2 rounded-xl border"
+                style={{ backgroundColor: themeColors.surfaceVariant }}
+              />
+
+              <div className="flex items-center gap-4 pt-1">
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input 
+                    type="checkbox"
+                    checked={newProdFeatured}
+                    onChange={(e) => setNewProdFeatured(e.target.checked)}
+                  />
+                  <span>{t('featured_product_check')}</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input 
+                    type="checkbox"
+                    checked={newProdInStock}
+                    onChange={(e) => setNewProdInStock(e.target.checked)}
+                  />
+                  <span>{t('in_stock')}</span>
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 rounded-xl text-white font-bold text-xs shadow-md mt-3"
+                style={{ backgroundColor: currentTheme.primary }}
+              >
+                {t('save')}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ADD COUPON MODAL */}
+      {showAddCouponModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div 
+            className="w-full max-w-sm rounded-3xl p-6 border shadow-2xl space-y-4"
+            style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+          >
+            <div className="flex justify-between items-center">
+              <h3 className="text-sm font-bold flex items-center gap-1.5" style={{ color: currentTheme.primary }}>
+                <Tag className="w-4 h-4" />
+                {t('add_coupon')}
+              </h3>
+              <button onClick={() => setShowAddCouponModal(false)}><X className="w-4 h-4" /></button>
+            </div>
+
+            <form onSubmit={handleAddCouponSubmit} className="space-y-2.5 text-xs">
+              <input 
+                type="text"
+                value={newCouponCode}
+                onChange={(e) => setNewCouponCode(e.target.value)}
+                placeholder={t('coupon_code') + " (e.g. VIP2026)"}
+                className="w-full px-3 py-2 rounded-xl border uppercase tracking-wider"
+                style={{ backgroundColor: themeColors.surfaceVariant }}
+              />
+
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={newCouponType}
+                  onChange={(e) => setNewCouponType(e.target.value)}
+                  className="px-3 py-2 rounded-xl border"
+                  style={{ backgroundColor: themeColors.surfaceVariant }}
+                >
+                  <option value="percent">{t('percent_discount')} (%)</option>
+                  <option value="fixed">{t('fixed_discount')} (¥)</option>
+                </select>
+
+                <input 
+                  type="number"
+                  value={newCouponVal}
+                  onChange={(e) => setNewCouponVal(e.target.value)}
+                  placeholder={t('discount_value')}
+                  className="px-3 py-2 rounded-xl border"
+                  style={{ backgroundColor: themeColors.surfaceVariant }}
+                />
+              </div>
+
+              <input 
+                type="number"
+                value={newCouponMinSpend}
+                onChange={(e) => setNewCouponMinSpend(e.target.value)}
+                placeholder={t('min_spend_label')}
+                className="w-full px-3 py-2 rounded-xl border"
+                style={{ backgroundColor: themeColors.surfaceVariant }}
+              />
+
+              <input 
+                type="text"
+                value={newCouponDescUg}
+                onChange={(e) => setNewCouponDescUg(e.target.value)}
+                placeholder="چۈشەندۈرۈش (مەسىلەن: 10% ئېتىبار)"
+                className="w-full px-3 py-2 rounded-xl border"
+                style={{ backgroundColor: themeColors.surfaceVariant }}
+              />
+
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-xl text-white font-bold shadow-md mt-2"
+                style={{ backgroundColor: currentTheme.primary }}
+              >
+                {t('save')}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
