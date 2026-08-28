@@ -99,36 +99,6 @@ export const StoreProvider = ({ children }) => {
   const [audioProgress, setAudioProgress] = useState(0);
   const audioRef = useRef(new Audio());
 
-  // Persistence Effects
-  useEffect(() => {
-    localStorage.setItem('noor_products', JSON.stringify(products));
-  }, [products]);
-
-  useEffect(() => {
-    localStorage.setItem('noor_cart', JSON.stringify(cartMap));
-  }, [cartMap]);
-
-  useEffect(() => {
-    localStorage.setItem('noor_coupons', JSON.stringify(coupons));
-  }, [coupons]);
-
-  useEffect(() => {
-    localStorage.setItem('noor_compared', JSON.stringify(comparedProductIds));
-  }, [comparedProductIds]);
-
-  useEffect(() => {
-    localStorage.setItem('noor_reviews', JSON.stringify(reviews));
-  }, [reviews]);
-
-  useEffect(() => {
-    localStorage.setItem('noor_orders', JSON.stringify(orders));
-  }, [orders]);
-
-  useEffect(() => {
-    localStorage.setItem('noor_admin_pin', adminPin);
-  }, [adminPin]);
-
-  // Audio Player Event Listeners
   const currentTrackRef = useRef(currentTrack);
   const nasheedTracksRef = useRef(nasheedTracks);
 
@@ -140,6 +110,68 @@ export const StoreProvider = ({ children }) => {
     nasheedTracksRef.current = nasheedTracks;
   }, [nasheedTracks]);
 
+  // Nasheed Player Controls
+  const playNasheed = (track) => {
+    if (!track) return;
+    setCurrentTrack(track);
+    currentTrackRef.current = track;
+    const audio = audioRef.current;
+    const resolvedUrl = getAssetUrl(track.audioSrc);
+    audio.src = resolvedUrl;
+    audio.load();
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setIsPlayingNasheed(true);
+        })
+        .catch(err => {
+          console.warn("Audio autoplay blocked or interrupted:", err);
+          setIsPlayingNasheed(false);
+        });
+    }
+  };
+
+  const togglePlayPauseNasheed = () => {
+    const audio = audioRef.current;
+    if (isPlayingNasheed) {
+      audio.pause();
+      setIsPlayingNasheed(false);
+    } else {
+      if (!audio.src || audio.src.endsWith('/') || !audio.src.includes('.mp3')) {
+        audio.src = getAssetUrl(currentTrack.audioSrc);
+        audio.load();
+      }
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlayingNasheed(true);
+          })
+          .catch(err => console.warn("Audio play error:", err));
+      }
+    }
+  };
+
+  const playNextTrack = () => {
+    const list = nasheedTracksRef.current;
+    const curr = currentTrackRef.current || currentTrack;
+    const currentIndex = list.findIndex(t => t.id === curr.id);
+    const nextIndex = (currentIndex + 1) % list.length;
+    playNasheed(list[nextIndex]);
+  };
+
+  const playPrevTrack = () => {
+    const list = nasheedTracksRef.current;
+    const curr = currentTrackRef.current || currentTrack;
+    const currentIndex = list.findIndex(t => t.id === curr.id);
+    const prevIndex = (currentIndex - 1 + list.length) % list.length;
+    playNasheed(list[prevIndex]);
+  };
+
+  const toggleNasheedSection = () => setIsNasheedExpanded(prev => !prev);
+
+  // Audio Player Event Listeners (mounted once)
   useEffect(() => {
     const audio = audioRef.current;
 
@@ -150,11 +182,7 @@ export const StoreProvider = ({ children }) => {
     };
 
     const handleEnded = () => {
-      const list = nasheedTracksRef.current;
-      const curr = currentTrackRef.current;
-      const currentIndex = list.findIndex(t => t.id === curr.id);
-      const nextIndex = (currentIndex + 1) % list.length;
-      playNasheed(list[nextIndex]);
+      playNextTrack();
     };
 
     const handlePlay = () => setIsPlayingNasheed(true);
@@ -480,66 +508,6 @@ export const StoreProvider = ({ children }) => {
       `════════════════════════════════`;
   };
 
-  // Nasheed Player Controls
-  const playNasheed = (track) => {
-    if (!track) return;
-    setCurrentTrack(track);
-    currentTrackRef.current = track;
-    const audio = audioRef.current;
-    const resolvedUrl = getAssetUrl(track.audioSrc);
-    audio.src = resolvedUrl;
-    audio.load();
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          setIsPlayingNasheed(true);
-        })
-        .catch(err => {
-          console.warn("Audio autoplay blocked or interrupted:", err);
-          setIsPlayingNasheed(false);
-        });
-    }
-  };
-
-  const togglePlayPauseNasheed = () => {
-    const audio = audioRef.current;
-    if (isPlayingNasheed) {
-      audio.pause();
-      setIsPlayingNasheed(false);
-    } else {
-      if (!audio.src || audio.src.endsWith('/') || !audio.src.includes('.mp3')) {
-        audio.src = getAssetUrl(currentTrack.audioSrc);
-        audio.load();
-      }
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setIsPlayingNasheed(true);
-          })
-          .catch(err => console.warn("Audio play error:", err));
-      }
-    }
-  };
-
-  const playNextTrack = () => {
-    const list = nasheedTracksRef.current;
-    const curr = currentTrackRef.current || currentTrack;
-    const currentIndex = list.findIndex(t => t.id === curr.id);
-    const nextIndex = (currentIndex + 1) % list.length;
-    playNasheed(list[nextIndex]);
-  };
-
-  const playPrevTrack = () => {
-    const list = nasheedTracksRef.current;
-    const curr = currentTrackRef.current || currentTrack;
-    const currentIndex = list.findIndex(t => t.id === curr.id);
-    const prevIndex = (currentIndex - 1 + list.length) % list.length;
-    playNasheed(list[prevIndex]);
-  };
-
-  const toggleNasheedSection = () => setIsNasheedExpanded(prev => !prev);
 
   // AI Shopping Advisor
   const initAiWelcomeMessage = () => {

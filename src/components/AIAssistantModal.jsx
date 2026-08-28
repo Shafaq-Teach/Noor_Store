@@ -18,6 +18,7 @@ export const AIAssistantModal = () => {
   const { currentTheme, themeColors, language, isDarkMode, t } = useTheme();
   const { 
     isAiAdvisorOpen, 
+    openAiAdvisor,
     closeAiAdvisor, 
     aiChatMessages, 
     isAiThinking, 
