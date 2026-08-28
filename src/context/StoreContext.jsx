@@ -129,6 +129,17 @@ export const StoreProvider = ({ children }) => {
   }, [adminPin]);
 
   // Audio Player Event Listeners
+  const currentTrackRef = useRef(currentTrack);
+  const nasheedTracksRef = useRef(nasheedTracks);
+
+  useEffect(() => {
+    currentTrackRef.current = currentTrack;
+  }, [currentTrack]);
+
+  useEffect(() => {
+    nasheedTracksRef.current = nasheedTracks;
+  }, [nasheedTracks]);
+
   useEffect(() => {
     const audio = audioRef.current;
 
@@ -139,18 +150,28 @@ export const StoreProvider = ({ children }) => {
     };
 
     const handleEnded = () => {
-      playNextTrack();
+      const list = nasheedTracksRef.current;
+      const curr = currentTrackRef.current;
+      const currentIndex = list.findIndex(t => t.id === curr.id);
+      const nextIndex = (currentIndex + 1) % list.length;
+      playNasheed(list[nextIndex]);
     };
+
+    const handlePlay = () => setIsPlayingNasheed(true);
+    const handlePause = () => setIsPlayingNasheed(false);
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
 
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('ended', handleEnded);
-      audio.pause();
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
     };
-  }, [currentTrack]);
+  }, []);
 
   // Cart Calculations
   const cartItems = Object.values(cartMap);
@@ -461,34 +482,61 @@ export const StoreProvider = ({ children }) => {
 
   // Nasheed Player Controls
   const playNasheed = (track) => {
+    if (!track) return;
     setCurrentTrack(track);
-    audioRef.current.src = getAssetUrl(track.audioSrc);
-    audioRef.current.play().then(() => {
-      setIsPlayingNasheed(true);
-    }).catch(err => {
-      console.warn("Audio autoplay blocked by browser:", err);
-      setIsPlayingNasheed(false);
-    });
+    currentTrackRef.current = track;
+    const audio = audioRef.current;
+    const resolvedUrl = getAssetUrl(track.audioSrc);
+    audio.src = resolvedUrl;
+    audio.load();
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setIsPlayingNasheed(true);
+        })
+        .catch(err => {
+          console.warn("Audio autoplay blocked or interrupted:", err);
+          setIsPlayingNasheed(false);
+        });
+    }
   };
 
   const togglePlayPauseNasheed = () => {
+    const audio = audioRef.current;
     if (isPlayingNasheed) {
-      audioRef.current.pause();
+      audio.pause();
       setIsPlayingNasheed(false);
     } else {
-      if (!audioRef.current.src || audioRef.current.src.endsWith('/')) {
-        audioRef.current.src = getAssetUrl(currentTrack.audioSrc);
+      if (!audio.src || audio.src.endsWith('/') || !audio.src.includes('.mp3')) {
+        audio.src = getAssetUrl(currentTrack.audioSrc);
+        audio.load();
       }
-      audioRef.current.play().then(() => {
-        setIsPlayingNasheed(true);
-      }).catch(err => console.warn(err));
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlayingNasheed(true);
+          })
+          .catch(err => console.warn("Audio play error:", err));
+      }
     }
   };
 
   const playNextTrack = () => {
-    const currentIndex = nasheedTracks.findIndex(t => t.id === currentTrack.id);
-    const nextIndex = (currentIndex + 1) % nasheedTracks.length;
-    playNasheed(nasheedTracks[nextIndex]);
+    const list = nasheedTracksRef.current;
+    const curr = currentTrackRef.current || currentTrack;
+    const currentIndex = list.findIndex(t => t.id === curr.id);
+    const nextIndex = (currentIndex + 1) % list.length;
+    playNasheed(list[nextIndex]);
+  };
+
+  const playPrevTrack = () => {
+    const list = nasheedTracksRef.current;
+    const curr = currentTrackRef.current || currentTrack;
+    const currentIndex = list.findIndex(t => t.id === curr.id);
+    const prevIndex = (currentIndex - 1 + list.length) % list.length;
+    playNasheed(list[prevIndex]);
   };
 
   const toggleNasheedSection = () => setIsNasheedExpanded(prev => !prev);
@@ -683,6 +731,7 @@ export const StoreProvider = ({ children }) => {
       playNasheed,
       togglePlayPauseNasheed,
       playNextTrack,
+      playPrevTrack,
       toggleNasheedSection
     }}>
       {children}

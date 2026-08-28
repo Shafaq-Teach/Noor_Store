@@ -37,7 +37,57 @@ export const AIAssistantModal = () => {
     }
   }, [aiChatMessages, isAiThinking, isAiAdvisorOpen]);
 
-  if (!isAiAdvisorOpen) return null;
+  if (!isAiAdvisorOpen) {
+    return (
+      <div 
+        className="fixed bottom-20 left-4 sm:bottom-6 sm:left-6 z-40 select-none animate-in fade-in zoom-in-90 duration-300"
+      >
+        <div className="relative flex items-center group">
+          {/* Floating Bubble Button */}
+          <button
+            onClick={openAiAdvisor}
+            aria-label={t('ai_assistant')}
+            className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-white shadow-2xl transition-all duration-300 active:scale-90 hover:scale-110 cursor-pointer border-2 border-white/60 hover:shadow-emerald-500/40"
+            style={{
+              background: `linear-gradient(135deg, #10B981 0%, #059669 45%, #F59E0B 100%)`,
+              boxShadow: `0 10px 25px -5px rgba(16, 185, 129, 0.5), 0 8px 16px -6px rgba(245, 158, 11, 0.4)`
+            }}
+          >
+            {/* Animated Glow Rings */}
+            <span className="absolute inset-0 rounded-full animate-ping opacity-35 bg-emerald-400 pointer-events-none" style={{ animationDuration: '3s' }} />
+            <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-emerald-400 via-teal-300 to-amber-300 opacity-40 blur-sm group-hover:opacity-80 transition-opacity" />
+
+            {/* Sparkle Icon */}
+            <div className="relative z-10 flex flex-col items-center justify-center">
+              <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 animate-pulse" />
+            </div>
+
+            {/* Floating AI Badge */}
+            <span className="absolute -top-1 -right-1 flex h-4 w-4">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-4 w-4 bg-amber-500 border border-white text-[9px] font-bold text-white items-center justify-center">
+                AI
+              </span>
+            </span>
+          </button>
+
+          {/* Floating Pill Label */}
+          <div
+            onClick={openAiAdvisor}
+            className="hidden sm:flex absolute left-full ml-2.5 px-3 py-1.5 rounded-2xl shadow-lg border backdrop-blur-md items-center gap-1.5 cursor-pointer whitespace-nowrap opacity-90 group-hover:opacity-100 transition-all hover:scale-105"
+            style={{
+              backgroundColor: isDarkMode ? 'rgba(19, 47, 69, 0.94)' : 'rgba(255, 255, 255, 0.94)',
+              borderColor: themeColors.border,
+              color: themeColors.textPrimary
+            }}
+          >
+            <Bot className="w-4 h-4 text-emerald-500 animate-bounce" />
+            <span className="text-xs font-bold">{t('ai_advisor')}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const quickPrompts = [
     { key: 'ai_quick_camera', query: '📸 ئەڭ ياخشى كامېرا بار تېلېفون' },

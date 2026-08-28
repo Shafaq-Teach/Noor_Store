@@ -78,30 +78,6 @@ export const HeaderBar = () => {
             <span className="hidden md:inline text-[11px]">{t('ai_advisor')}</span>
           </button>
 
-          {/* View Mode Switcher (Web vs App Frame) */}
-          <button
-            onClick={toggleViewMode}
-            className="hidden sm:flex items-center gap-1 p-1.5 px-2.5 rounded-full text-xs font-medium border shadow-sm hover:opacity-80 active:scale-95 transition-all"
-            style={{
-              backgroundColor: themeColors.surfaceVariant,
-              borderColor: themeColors.border,
-              color: themeColors.textPrimary
-            }}
-            title={t('toggle_view_mode')}
-          >
-            {viewMode === 'mobile' ? (
-              <>
-                <Monitor className="w-3.5 h-3.5 text-sky-500" />
-                <span className="text-[11px] font-semibold">{t('web_mode')}</span>
-              </>
-            ) : (
-              <>
-                <Smartphone className="w-3.5 h-3.5 text-amber-500" />
-                <span className="text-[11px] font-semibold">{t('app_mode')}</span>
-              </>
-            )}
-          </button>
-
           {/* Map Location */}
           <button
             onClick={handleMapClick}
