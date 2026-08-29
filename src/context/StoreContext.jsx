@@ -8,7 +8,17 @@ import {
   insertProductToSupabase, 
   updateProductInSupabase, 
   deleteProductFromSupabase, 
-  mapDbRowToProduct 
+  mapDbRowToProduct,
+  fetchReviewsFromSupabase,
+  insertReviewToSupabase,
+  replyReviewInSupabase,
+  deleteReviewFromSupabase,
+  mapDbRowToReview,
+  fetchOrdersFromSupabase,
+  insertOrderToSupabase,
+  updateOrderStatusInSupabase,
+  deleteOrderFromSupabase,
+  mapDbRowToOrder
 } from '../utils/supabaseClient';
 import confetti from 'canvas-confetti';
 
@@ -216,39 +226,47 @@ export const StoreProvider = ({ children }) => {
   useEffect(() => {
     let isMounted = true;
 
-    const loadProductsFromCloud = async () => {
+    const loadDataFromCloud = async () => {
       try {
         setIsCloudLoading(true);
-        const res = await fetchProductsFromSupabase();
-        if (isMounted && res) {
-          const prods = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
-          if (prods && prods.length > 0) {
-            setProducts(prods);
-            localStorage.setItem('noor_products', JSON.stringify(prods));
-            setIsCloudConnected(true);
-          } else {
-            setIsCloudConnected(res.success !== false);
-          }
+        // 1. Fetch Products
+        const pRes = await fetchProductsFromSupabase();
+        if (isMounted && pRes && pRes.data && pRes.data.length > 0) {
+          setProducts(pRes.data);
+          localStorage.setItem('noor_products', JSON.stringify(pRes.data));
+          setIsCloudConnected(true);
+        }
+
+        // 2. Fetch Reviews
+        const rRes = await fetchReviewsFromSupabase();
+        if (isMounted && rRes && rRes.data && rRes.data.length > 0) {
+          setReviews(rRes.data);
+          localStorage.setItem('noor_reviews', JSON.stringify(rRes.data));
+        }
+
+        // 3. Fetch Orders
+        const oRes = await fetchOrdersFromSupabase();
+        if (isMounted && oRes && oRes.data && oRes.data.length > 0) {
+          setOrders(oRes.data);
+          localStorage.setItem('noor_orders', JSON.stringify(oRes.data));
         }
       } catch (err) {
-        console.warn('Supabase products fetch failed:', err);
+        console.warn('Supabase initial fetch failed:', err);
       } finally {
         if (isMounted) setIsCloudLoading(false);
       }
     };
 
-    loadProductsFromCloud();
+    loadDataFromCloud();
 
-    // Subscribe to realtime database changes from mobile app
-    const channel = supabase
+    // 1. Products Realtime Channel
+    const productsChannel = supabase
       .channel('public:products')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'products' },
         (payload) => {
-          console.log('دېتالدىن يېڭى ئۆزگىرىش كەلدى:', payload);
           setIsCloudConnected(true);
-
           if (payload.eventType === 'INSERT' && payload.new) {
             const newProd = mapDbRowToProduct(payload.new);
             if (newProd) {
@@ -266,20 +284,76 @@ export const StoreProvider = ({ children }) => {
           } else if (payload.eventType === 'DELETE' && payload.old) {
             const deletedId = payload.old.id;
             setProducts(prev => prev.filter(p => String(p.id) !== String(deletedId)));
-          } else {
-            loadProductsFromCloud();
           }
         }
       )
       .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          setIsCloudConnected(true);
-        }
+        if (status === 'SUBSCRIBED') setIsCloudConnected(true);
       });
+
+    // 2. Reviews Realtime Channel
+    const reviewsChannel = supabase
+      .channel('public:reviews')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'reviews' },
+        (payload) => {
+          if (payload.eventType === 'INSERT' && payload.new) {
+            const newRev = mapDbRowToReview(payload.new);
+            if (newRev) {
+              setReviews(prev => {
+                const exists = prev.some(r => String(r.id) === String(newRev.id));
+                if (exists) return prev.map(r => String(r.id) === String(newRev.id) ? newRev : r);
+                return [newRev, ...prev];
+              });
+            }
+          } else if (payload.eventType === 'UPDATE' && payload.new) {
+            const updatedRev = mapDbRowToReview(payload.new);
+            if (updatedRev) {
+              setReviews(prev => prev.map(r => String(r.id) === String(updatedRev.id) ? updatedRev : r));
+            }
+          } else if (payload.eventType === 'DELETE' && payload.old) {
+            const deletedId = payload.old.id;
+            setReviews(prev => prev.filter(r => String(r.id) !== String(deletedId)));
+          }
+        }
+      )
+      .subscribe();
+
+    // 3. Orders Realtime Channel
+    const ordersChannel = supabase
+      .channel('public:orders')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        (payload) => {
+          if (payload.eventType === 'INSERT' && payload.new) {
+            const newOrder = mapDbRowToOrder(payload.new);
+            if (newOrder) {
+              setOrders(prev => {
+                const exists = prev.some(o => String(o.id) === String(newOrder.id));
+                if (exists) return prev.map(o => String(o.id) === String(newOrder.id) ? newOrder : o);
+                return [newOrder, ...prev];
+              });
+            }
+          } else if (payload.eventType === 'UPDATE' && payload.new) {
+            const updatedOrder = mapDbRowToOrder(payload.new);
+            if (updatedOrder) {
+              setOrders(prev => prev.map(o => String(o.id) === String(updatedOrder.id) ? updatedOrder : o));
+            }
+          } else if (payload.eventType === 'DELETE' && payload.old) {
+            const deletedId = payload.old.id;
+            setOrders(prev => prev.filter(o => String(o.id) !== String(deletedId)));
+          }
+        }
+      )
+      .subscribe();
 
     return () => {
       isMounted = false;
-      supabase.removeChannel(channel);
+      supabase.removeChannel(productsChannel);
+      supabase.removeChannel(reviewsChannel);
+      supabase.removeChannel(ordersChannel);
     };
   }, []);
 
@@ -441,12 +515,12 @@ export const StoreProvider = ({ children }) => {
 
   const favoriteProducts = products.filter(p => p.heartsCount > 0);
 
-  // Reviews
-  const addReview = (productId, userName, comment) => {
+  // Reviews CRUD (Synced with Supabase & Mobile App)
+  const addReview = async (productId, userName, comment) => {
     if (!comment.trim()) return;
     const newRev = {
       id: Date.now(),
-      productId,
+      productId: Number(productId) || productId,
       userName: userName.trim() || t('your_name'),
       comment: comment.trim(),
       adminReply: '',
@@ -454,31 +528,37 @@ export const StoreProvider = ({ children }) => {
     };
     setReviews(prev => [newRev, ...prev]);
     confetti({ particleCount: 40, spread: 50 });
+    await insertReviewToSupabase(newRev);
   };
 
-  const replyToReview = (reviewId, reply) => {
+  const replyToReview = async (reviewId, reply) => {
     setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, adminReply: reply } : r));
+    await replyReviewInSupabase(reviewId, reply);
   };
 
-  const deleteReview = (reviewId) => {
+  const deleteReview = async (reviewId) => {
     setReviews(prev => prev.filter(r => r.id !== reviewId));
+    await deleteReviewFromSupabase(reviewId);
   };
 
   const getReviewsForProduct = (productId) => {
-    return reviews.filter(r => r.productId === productId);
+    return reviews.filter(r => String(r.productId) === String(productId));
   };
 
   // Product CRUD (Synced with Supabase & Mobile App)
   const addProduct = async (newProd) => {
-    const id = newProd.id || 'prod_' + Date.now();
     const product = {
       ...newProd,
-      id,
       likesCount: 0,
       heartsCount: 0
     };
-    setProducts(prev => [product, ...prev]);
-    await insertProductToSupabase(product);
+    const res = await insertProductToSupabase(product);
+    if (res && res.success && res.data) {
+      setProducts(prev => [res.data, ...prev]);
+    } else {
+      const fallback = { ...product, id: Date.now() };
+      setProducts(prev => [fallback, ...prev]);
+    }
   };
 
   const updateProduct = async (updatedProd) => {
@@ -530,8 +610,8 @@ export const StoreProvider = ({ children }) => {
     setCoupons(prev => prev.filter(c => c.code.toUpperCase() !== code.toUpperCase()));
   };
 
-  // Orders Management
-  const submitOrder = (customerName, customerPhone, note, channel) => {
+  // Orders Management (Synced with Supabase & Mobile App)
+  const submitOrder = async (customerName, customerPhone, note, channel) => {
     if (cartItems.length === 0) return null;
 
     const orderId = Math.floor(10000 + Math.random() * 90000);
@@ -542,6 +622,13 @@ export const StoreProvider = ({ children }) => {
       return `• ${pName} x${item.quantity} = ¥${(item.product.price * item.quantity).toFixed(2)}`;
     }).join('\n');
 
+    const orderItems = cartItems.map(item => ({
+      id: item.product.id,
+      name: item.product.nameUg || item.product.nameEn,
+      price: item.product.price,
+      quantity: item.quantity
+    }));
+
     const newOrder = {
       id: orderId,
       customerName,
@@ -550,7 +637,8 @@ export const StoreProvider = ({ children }) => {
       totalAmount: finalTotal,
       note,
       status: "Pending",
-      date: dateStr
+      date: dateStr,
+      items: orderItems
     };
 
     setOrders(prev => [newOrder, ...prev]);
@@ -559,6 +647,9 @@ export const StoreProvider = ({ children }) => {
     setLastPlacedInvoice(invoiceText);
     clearCart();
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+
+    // Sync to Supabase Orders table
+    await insertOrderToSupabase(newOrder);
 
     if (channel === 'whatsapp') {
       const cleanPhone = "+860995416715";
@@ -570,12 +661,14 @@ export const StoreProvider = ({ children }) => {
     return invoiceText;
   };
 
-  const updateOrderStatus = (orderId, newStatus) => {
+  const updateOrderStatus = async (orderId, newStatus) => {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+    await updateOrderStatusInSupabase(orderId, newStatus);
   };
 
-  const deleteOrder = (orderId) => {
+  const deleteOrder = async (orderId) => {
     setOrders(prev => prev.filter(o => o.id !== orderId));
+    await deleteOrderFromSupabase(orderId);
   };
 
   const notifyCustomer = (order, newStatus) => {
