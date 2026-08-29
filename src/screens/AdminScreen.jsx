@@ -53,7 +53,8 @@ export const AdminScreen = () => {
     replyToReview,
     deleteReview,
     generateSalesReport,
-    categories
+    categories,
+    isCloudConnected
   } = useStore();
 
   const [pinInput, setPinInput] = useState('');
@@ -287,10 +288,20 @@ export const AdminScreen = () => {
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-base sm:text-lg font-bold leading-tight" style={{ color: currentTheme.primary }}>
-              {t('admin_control_center')}
-            </h2>
-            <p className="text-xs opacity-75" style={{ color: themeColors.textSecondary }}>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base sm:text-lg font-bold leading-tight" style={{ color: currentTheme.primary }}>
+                {t('admin_control_center')}
+              </h2>
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                isCloudConnected 
+                  ? 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30' 
+                  : 'bg-amber-500/15 text-amber-500 border-amber-500/30'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${isCloudConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
+                {isCloudConnected ? 'دېتال بىلەن ئۇلاندى (Live Sync)' : 'بۇلۇت ئۇلىنىشى'}
+              </span>
+            </div>
+            <p className="text-xs opacity-75 mt-0.5" style={{ color: themeColors.textSecondary }}>
               PIN: **** ({t('system_info')})
             </p>
           </div>

@@ -2,6 +2,14 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import { initialCategories, initialProducts, initialCoupons, initialReviews, initialNasheedTracks } from '../data/initialData';
 import { useTheme } from './ThemeContext';
 import { getAssetUrl } from '../utils/assetHelper';
+import { 
+  supabase, 
+  fetchProductsFromSupabase, 
+  insertProductToSupabase, 
+  updateProductInSupabase, 
+  deleteProductFromSupabase, 
+  mapDbRowToProduct 
+} from '../utils/supabaseClient';
 import confetti from 'canvas-confetti';
 
 const StoreContext = createContext(null);
@@ -201,6 +209,108 @@ export const StoreProvider = ({ children }) => {
     };
   }, []);
 
+  const [isCloudConnected, setIsCloudConnected] = useState(false);
+  const [isCloudLoading, setIsCloudLoading] = useState(true);
+
+  // Realtime Supabase Cloud Synchronization with Mobile App
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProductsFromCloud = async () => {
+      try {
+        setIsCloudLoading(true);
+        const remoteProducts = await fetchProductsFromSupabase();
+        if (isMounted) {
+          if (remoteProducts && remoteProducts.length > 0) {
+            setProducts(remoteProducts);
+            localStorage.setItem('noor_products', JSON.stringify(remoteProducts));
+            setIsCloudConnected(true);
+          } else {
+            setIsCloudConnected(true);
+          }
+        }
+      } catch (err) {
+        console.warn('Supabase products fetch failed:', err);
+      } finally {
+        if (isMounted) setIsCloudLoading(false);
+      }
+    };
+
+    loadProductsFromCloud();
+
+    // Subscribe to realtime database changes from mobile app
+    const channel = supabase
+      .channel('public:products')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'products' },
+        (payload) => {
+          console.log('دېتالدىن يېڭى ئۆزگىرىش كەلدى:', payload);
+          setIsCloudConnected(true);
+
+          if (payload.eventType === 'INSERT' && payload.new) {
+            const newProd = mapDbRowToProduct(payload.new);
+            if (newProd) {
+              setProducts(prev => {
+                const exists = prev.some(p => String(p.id) === String(newProd.id));
+                if (exists) return prev.map(p => String(p.id) === String(newProd.id) ? newProd : p);
+                return [newProd, ...prev];
+              });
+            }
+          } else if (payload.eventType === 'UPDATE' && payload.new) {
+            const updatedProd = mapDbRowToProduct(payload.new);
+            if (updatedProd) {
+              setProducts(prev => prev.map(p => String(p.id) === String(updatedProd.id) ? updatedProd : p));
+            }
+          } else if (payload.eventType === 'DELETE' && payload.old) {
+            const deletedId = payload.old.id;
+            setProducts(prev => prev.filter(p => String(p.id) !== String(deletedId)));
+          } else {
+            loadProductsFromCloud();
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          setIsCloudConnected(true);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Persistence Effects
+  useEffect(() => {
+    localStorage.setItem('noor_products', JSON.stringify(products));
+  }, [products]);
+
+  useEffect(() => {
+    localStorage.setItem('noor_cart', JSON.stringify(cartMap));
+  }, [cartMap]);
+
+  useEffect(() => {
+    localStorage.setItem('noor_coupons', JSON.stringify(coupons));
+  }, [coupons]);
+
+  useEffect(() => {
+    localStorage.setItem('noor_compared', JSON.stringify(comparedProductIds));
+  }, [comparedProductIds]);
+
+  useEffect(() => {
+    localStorage.setItem('noor_reviews', JSON.stringify(reviews));
+  }, [reviews]);
+
+  useEffect(() => {
+    localStorage.setItem('noor_orders', JSON.stringify(orders));
+  }, [orders]);
+
+  useEffect(() => {
+    localStorage.setItem('noor_admin_pin', adminPin);
+  }, [adminPin]);
+
   // Cart Calculations
   const cartItems = Object.values(cartMap);
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
@@ -304,23 +414,28 @@ export const StoreProvider = ({ children }) => {
   const comparedProducts = comparedProductIds.map(id => products.find(p => p.id === id)).filter(Boolean);
 
   // Favorites & Likes Interactions
-  const toggleHeart = (productId) => {
+  const toggleHeart = async (productId) => {
+    let newHearts = 0;
     setProducts(prev => prev.map(p => {
       if (p.id === productId) {
-        const newHearts = p.heartsCount > 0 ? 0 : p.heartsCount + 1;
+        newHearts = p.heartsCount > 0 ? 0 : p.heartsCount + 1;
         return { ...p, heartsCount: newHearts };
       }
       return p;
     }));
+    await updateProductInSupabase(productId, { heartsCount: newHearts });
   };
 
-  const incrementLikes = (productId) => {
+  const incrementLikes = async (productId) => {
+    let newLikes = 0;
     setProducts(prev => prev.map(p => {
       if (p.id === productId) {
-        return { ...p, likesCount: p.likesCount + 1 };
+        newLikes = (p.likesCount || 0) + 1;
+        return { ...p, likesCount: newLikes };
       }
       return p;
     }));
+    await updateProductInSupabase(productId, { likesCount: newLikes });
   };
 
   const favoriteProducts = products.filter(p => p.heartsCount > 0);
@@ -352,9 +467,9 @@ export const StoreProvider = ({ children }) => {
     return reviews.filter(r => r.productId === productId);
   };
 
-  // Product CRUD
-  const addProduct = (newProd) => {
-    const id = Date.now();
+  // Product CRUD (Synced with Supabase & Mobile App)
+  const addProduct = async (newProd) => {
+    const id = newProd.id || 'prod_' + Date.now();
     const product = {
       ...newProd,
       id,
@@ -362,26 +477,47 @@ export const StoreProvider = ({ children }) => {
       heartsCount: 0
     };
     setProducts(prev => [product, ...prev]);
+    await insertProductToSupabase(product);
   };
 
-  const updateProduct = (updatedProd) => {
+  const updateProduct = async (updatedProd) => {
     setProducts(prev => prev.map(p => p.id === updatedProd.id ? updatedProd : p));
+    await updateProductInSupabase(updatedProd.id, updatedProd);
   };
 
-  const updateProductPrice = (productId, newPrice) => {
-    setProducts(prev => prev.map(p => p.id === productId ? { ...p, price: Number(newPrice) } : p));
+  const updateProductPrice = async (productId, newPrice) => {
+    const numPrice = Number(newPrice);
+    setProducts(prev => prev.map(p => p.id === productId ? { ...p, price: numPrice } : p));
+    await updateProductInSupabase(productId, { price: numPrice, originalPrice: numPrice * 1.1 });
   };
 
-  const toggleStock = (productId) => {
-    setProducts(prev => prev.map(p => p.id === productId ? { ...p, inStock: !p.inStock } : p));
+  const toggleStock = async (productId) => {
+    let nextStock = false;
+    setProducts(prev => prev.map(p => {
+      if (p.id === productId) {
+        nextStock = !p.inStock;
+        return { ...p, inStock: nextStock };
+      }
+      return p;
+    }));
+    await updateProductInSupabase(productId, { inStock: nextStock });
   };
 
-  const toggleFeatured = (productId) => {
-    setProducts(prev => prev.map(p => p.id === productId ? { ...p, isFeatured: !p.isFeatured } : p));
+  const toggleFeatured = async (productId) => {
+    let nextFeatured = false;
+    setProducts(prev => prev.map(p => {
+      if (p.id === productId) {
+        nextFeatured = !p.isFeatured;
+        return { ...p, isFeatured: nextFeatured };
+      }
+      return p;
+    }));
+    await updateProductInSupabase(productId, { isFeatured: nextFeatured });
   };
 
-  const deleteProduct = (productId) => {
+  const deleteProduct = async (productId) => {
     setProducts(prev => prev.filter(p => p.id !== productId));
+    await deleteProductFromSupabase(productId);
   };
 
   // Coupons CRUD
@@ -691,6 +827,8 @@ export const StoreProvider = ({ children }) => {
       isAiThinking,
       askAiAdvisor,
       resetAiChat,
+      isCloudConnected,
+      isCloudLoading,
       nasheedTracks,
       currentTrack,
       isPlayingNasheed,
