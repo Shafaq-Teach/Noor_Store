@@ -1,4 +1,4 @@
-﻿import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 
 export const SUPABASE_URL = 'https://trmuvfswhuxcbbjoxwgh.supabase.co';
 export const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRybXV2ZnN3aHV4Y2Jiam94d2doIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNzU3NzYsImV4cCI6MjA4Nzc1MTc3Nn0.7JgIuD44mP19E022kUa0d1e3yP21cO-jCqJkM5t129A';
@@ -8,31 +8,46 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 // Helper to map Supabase database row to Web Product format
 export const mapDbRowToProduct = (row) => {
   if (!row) return null;
+
+  // Extract images from multiple possible formats (string or array)
+  let img1 = row.image_res_name || row.image_url || row.imageUrl || row.image || row.photo || row.img || '';
+  let img2 = row.image_res_name2 || row.image_url2 || row.imageUrl2 || row.image2 || row.img2 || '';
+  let img3 = row.image_res_name3 || row.image_url3 || row.imageUrl3 || row.image3 || row.img3 || '';
+
+  if (Array.isArray(row.images) && row.images.length > 0) {
+    img1 = row.images[0] || img1;
+    img2 = row.images[1] || img2;
+    img3 = row.images[2] || img3;
+  }
+
+  const primaryName = row.name_ug || row.nameUg || row.title_ug || row.title || row.name || row.product_name || 'Noor Product';
+  const primaryDesc = row.description_ug || row.descUg || row.description || row.desc || row.details || '';
+
   return {
-    id: row.id,
-    nameUg: row.name_ug || row.nameUg || row.title_ug || '',
-    nameAr: row.name_ar || row.nameAr || row.title_ar || row.name_ug || '',
-    nameEn: row.name_en || row.nameEn || row.title_en || row.name_ug || '',
-    descriptionUg: row.description_ug || row.descUg || row.description || '',
-    descriptionAr: row.description_ar || row.descAr || '',
-    descriptionEn: row.description_en || row.descEn || '',
-    price: Number(row.price) || 0,
+    id: row.id || ('prod_' + Math.random().toString(36).substr(2, 9)),
+    nameUg: primaryName,
+    nameAr: row.name_ar || row.nameAr || row.title_ar || primaryName,
+    nameEn: row.name_en || row.nameEn || row.title_en || primaryName,
+    descriptionUg: primaryDesc,
+    descriptionAr: row.description_ar || row.descAr || primaryDesc,
+    descriptionEn: row.description_en || row.descEn || primaryDesc,
+    price: Number(row.price || row.cost || row.amount || 0),
     originalPrice: row.old_price !== null && row.old_price !== undefined 
       ? Number(row.old_price) 
-      : (row.originalPrice ? Number(row.originalPrice) : null),
-    categoryId: row.category || row.categoryId || 'phones',
-    brand: row.brand || 'Apple',
-    imageResName: row.image_res_name || row.imageResName || row.imageUrl || row.image || '/images/img_phones_1786037591338.jpg',
-    imageResName2: row.image_res_name2 || row.imageResName2 || '',
-    imageResName3: row.image_res_name3 || row.imageResName3 || '',
-    isFeatured: !!(row.is_featured ?? row.isFeatured),
+      : (row.oldPrice ? Number(row.oldPrice) : (row.originalPrice ? Number(row.originalPrice) : null)),
+    categoryId: row.category || row.category_id || row.categoryId || 'phones',
+    brand: row.brand || row.brand_name || 'Noor',
+    imageResName: img1 || '/images/img_phones_1786037591338.jpg',
+    imageResName2: img2,
+    imageResName3: img3,
+    isFeatured: !!(row.is_featured ?? row.isFeatured ?? row.featured),
     inStock: (row.stock !== undefined ? Number(row.stock) > 0 : true) && (row.inStock ?? true),
-    specsUg: row.specs_ug || row.specsUg || `Brand: ${row.brand || ''}`,
+    specsUg: row.specs_ug || row.specsUg || `Brand: ${row.brand || 'Noor'}`,
     specsAr: row.specs_ar || row.specsAr || '',
     specsEn: row.specs_en || row.specsEn || '',
-    likesCount: Number(row.likes_count || row.likesCount || 0),
-    heartsCount: Number(row.hearts_count || row.heartsCount || 0),
-    rating: Number(row.rating) || 5.0,
+    likesCount: Number(row.likes_count || row.likesCount || row.likes || 0),
+    heartsCount: Number(row.hearts_count || row.heartsCount || row.hearts || 0),
+    rating: Number(row.rating || 5.0),
     createdAt: row.created_at || new Date().toISOString()
   };
 };

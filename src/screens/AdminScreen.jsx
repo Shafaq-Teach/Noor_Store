@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useStore } from '../context/StoreContext';
+import { fetchProductsFromSupabase } from '../utils/supabaseClient';
 import { getAssetUrl } from '../utils/assetHelper';
 import { 
   ShieldCheck, 
@@ -26,7 +27,10 @@ import {
   Check, 
   X,
   Layers,
-  ChevronDown
+  ChevronDown,
+  UploadCloud,
+  Image as ImageIcon,
+  RefreshCw
 } from 'lucide-react';
 
 export const AdminScreen = () => {
@@ -84,6 +88,65 @@ export const AdminScreen = () => {
   const [newProdImg3, setNewProdImg3] = useState('');
   const [newProdFeatured, setNewProdFeatured] = useState(false);
   const [newProdInStock, setNewProdInStock] = useState(true);
+
+  // Multi-Image Upload State (Up to 3 images)
+  const [selectedImages, setSelectedImages] = useState([]);
+  const fileInputRef = useRef(null);
+
+  // Manual Supabase Sync state
+  const [isManualSyncing, setIsManualSyncing] = useState(false);
+  const [manualSyncMsg, setManualSyncMsg] = useState(null);
+
+  const handleManualSync = async () => {
+    setIsManualSyncing(true);
+    setManualSyncMsg(null);
+    try {
+      const cloudProds = await fetchProductsFromSupabase();
+      if (cloudProds && cloudProds.length > 0) {
+        setManualSyncMsg({ type: 'success', text: `✅ بۇلۇتتىن ${cloudProds.length} دانە مەھسۇلات تولۇق يېڭىلاندى!` });
+      } else {
+        setManualSyncMsg({ type: 'info', text: 'بۇلۇتتا تېخى مەھسۇلات يوق ياكى تور ئۇلىنىشىنى كۈتۈۋاتىدۇ.' });
+      }
+    } catch (err) {
+      setManualSyncMsg({ type: 'error', text: 'بۇلۇتتىن يېڭىلاشتا خاتالىق كۆرۈلدى: ' + (err.message || err) });
+    } finally {
+      setIsManualSyncing(false);
+      setTimeout(() => setManualSyncMsg(null), 5000);
+    }
+  };
+
+  const handleMultiImageChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const remainingSlots = 3 - selectedImages.length;
+    const filesToProcess = files.slice(0, remainingSlots > 0 ? remainingSlots : 3);
+
+    filesToProcess.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (loadEvt) => {
+        const base64Url = loadEvt.target.result;
+        setSelectedImages((prev) => {
+          const next = [...prev, { url: base64Url, name: file.name }].slice(0, 3);
+          if (next[0]) setNewProdImg1(next[0].url);
+          if (next[1]) setNewProdImg2(next[1].url);
+          if (next[2]) setNewProdImg3(next[2].url);
+          return next;
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeSelectedImage = (index) => {
+    setSelectedImages((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      setNewProdImg1(next[0] ? next[0].url : '/images/img_phones_1786037591338.jpg');
+      setNewProdImg2(next[1] ? next[1].url : '');
+      setNewProdImg3(next[2] ? next[2].url : '');
+      return next;
+    });
+  };
 
   // Add Coupon state
   const [showAddCouponModal, setShowAddCouponModal] = useState(false);
@@ -148,6 +211,10 @@ export const AdminScreen = () => {
     const primaryName = newProdNameUg.trim() || newProdNameAr.trim() || newProdNameEn.trim();
     const primaryDesc = newProdDescUg.trim() || newProdDescAr.trim() || newProdDescEn.trim();
 
+    const img1 = (selectedImages[0] && selectedImages[0].url) || newProdImg1.trim() || '/images/img_phones_1786037591338.jpg';
+    const img2 = (selectedImages[1] && selectedImages[1].url) || newProdImg2.trim();
+    const img3 = (selectedImages[2] && selectedImages[2].url) || newProdImg3.trim();
+
     addProduct({
       nameUg: newProdNameUg.trim() || primaryName,
       nameAr: newProdNameAr.trim() || primaryName,
@@ -159,9 +226,9 @@ export const AdminScreen = () => {
       originalPrice: Number(newProdPrice) * 1.1,
       categoryId: newProdCat,
       brand: newProdBrand,
-      imageResName: newProdImg1.trim() || '/images/img_phones_1786037591338.jpg',
-      imageResName2: newProdImg2.trim(),
-      imageResName3: newProdImg3.trim(),
+      imageResName: img1,
+      imageResName2: img2,
+      imageResName3: img3,
       isFeatured: newProdFeatured,
       inStock: newProdInStock,
       specsUg: `Brand: ${newProdBrand} | Category: ${newProdCat}`,
@@ -170,8 +237,12 @@ export const AdminScreen = () => {
     });
 
     setShowAddProductModal(false);
+    setSelectedImages([]);
     setNewProdNameUg('');
     setNewProdPrice('');
+    setNewProdImg1('/images/img_phones_1786037591338.jpg');
+    setNewProdImg2('');
+    setNewProdImg3('');
   };
 
   // Add Coupon Submit
@@ -309,6 +380,18 @@ export const AdminScreen = () => {
 
         {/* Header Right Actions */}
         <div className="flex items-center gap-2">
+          {/* Manual Sync Cloud Button */}
+          <button
+            onClick={handleManualSync}
+            disabled={isManualSyncing}
+            className="p-2 px-3 rounded-2xl border text-xs font-semibold flex items-center gap-1.5 hover:opacity-80 transition-all text-sky-600 dark:text-sky-400"
+            style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+            title="دېتال بىلەن قايتا ئۇلاپ يېڭىلاش"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isManualSyncing ? 'animate-spin text-sky-500' : ''}`} />
+            <span className="hidden sm:inline">دېتالدىن يېڭىلاش</span>
+          </button>
+
           <button
             onClick={() => setShowChangePinModal(true)}
             className="p-2 px-3 rounded-2xl border text-xs font-semibold flex items-center gap-1.5 hover:opacity-80 transition-opacity"
@@ -328,6 +411,17 @@ export const AdminScreen = () => {
           </button>
         </div>
       </div>
+
+      {manualSyncMsg && (
+        <div className={`p-3 rounded-2xl border text-xs font-bold flex items-center justify-between animate-in fade-in ${
+          manualSyncMsg.type === 'success' ? 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30' :
+          manualSyncMsg.type === 'error' ? 'bg-rose-500/15 text-rose-600 border-rose-500/30' :
+          'bg-sky-500/15 text-sky-600 border-sky-500/30'
+        }`}>
+          <span>{manualSyncMsg.text}</span>
+          <button onClick={() => setManualSyncMsg(null)}><X className="w-3.5 h-3.5" /></button>
+        </div>
+      )}
 
       {/* Admin Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
@@ -848,14 +942,79 @@ export const AdminScreen = () => {
                 style={{ backgroundColor: themeColors.surfaceVariant }}
               />
 
-              <input 
-                type="text"
-                value={newProdImg1}
-                onChange={(e) => setNewProdImg1(e.target.value)}
-                placeholder={t('image_1') + " (URL/Path)"}
-                className="w-full px-3 py-2 rounded-xl border"
-                style={{ backgroundColor: themeColors.surfaceVariant }}
-              />
+              {/* 3-Image Multi-Upload Section */}
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-xs flex items-center gap-1.5" style={{ color: currentTheme.primary }}>
+                    <ImageIcon className="w-4 h-4" />
+                    <span>مەھسۇلات رەسىملىرى (3 دانىنى تەڭ تاللاڭ)</span>
+                  </label>
+                  <span className="text-[10px] opacity-75 font-semibold">
+                    {selectedImages.length}/3 تاللانغان
+                  </span>
+                </div>
+
+                {/* Hidden File Input */}
+                <input 
+                  ref={fileInputRef}
+                  type="file" 
+                  accept="image/*" 
+                  multiple 
+                  onChange={handleMultiImageChange} 
+                  className="hidden" 
+                />
+
+                {/* Multi-Image Drop / Picker Box */}
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-3.5 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:opacity-85 active:scale-[0.99] transition-all text-center"
+                  style={{ 
+                    backgroundColor: themeColors.surfaceVariant, 
+                    borderColor: selectedImages.length >= 3 ? themeColors.border : currentTheme.primary 
+                  }}
+                >
+                  <UploadCloud className="w-6 h-6 text-sky-500 animate-bounce" />
+                  <div>
+                    <p className="font-bold text-xs">📷 ئۈچ دانە رەسىمنى بىراقلا تاللاپ يۈكلەڭ</p>
+                    <p className="text-[10px] opacity-70">تېلېفون ياكى كومپيۇتېرىڭىزدىن 1 دىن 3 كىچە رەسىمنى تاللاڭ</p>
+                  </div>
+                </div>
+
+                {/* 3 Thumbnails Preview Grid */}
+                {selectedImages.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2 pt-1">
+                    {selectedImages.map((imgObj, idx) => (
+                      <div key={idx} className="relative group rounded-2xl border overflow-hidden shadow-xs h-24 bg-black/5 flex items-center justify-center">
+                        <img src={imgObj.url} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                        <span className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-md bg-black/70 text-white text-[9px] font-bold">
+                          {idx === 0 ? 'ئاساسىي (1)' : `رەسىم ${idx + 1}`}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeSelectedImage(idx);
+                          }}
+                          className="absolute top-1 left-1 p-1 rounded-full bg-rose-500 text-white shadow-md hover:scale-110 active:scale-95 transition-transform"
+                          title="ئۆچۈرۈش"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Optional Manual URL Fallback Input */}
+                <input 
+                  type="text"
+                  value={newProdImg1}
+                  onChange={(e) => setNewProdImg1(e.target.value)}
+                  placeholder="ياكى رەسىم ئۇلانمىسىنى (URL) كىرگۈزۈڭ..."
+                  className="w-full px-3 py-1.5 rounded-xl border text-[11px]"
+                  style={{ backgroundColor: themeColors.surfaceVariant }}
+                />
+              </div>
 
               <div className="flex items-center gap-4 pt-1">
                 <label className="flex items-center gap-1.5 cursor-pointer">
