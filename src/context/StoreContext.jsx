@@ -219,14 +219,15 @@ export const StoreProvider = ({ children }) => {
     const loadProductsFromCloud = async () => {
       try {
         setIsCloudLoading(true);
-        const remoteProducts = await fetchProductsFromSupabase();
-        if (isMounted) {
-          if (remoteProducts && remoteProducts.length > 0) {
-            setProducts(remoteProducts);
-            localStorage.setItem('noor_products', JSON.stringify(remoteProducts));
+        const res = await fetchProductsFromSupabase();
+        if (isMounted && res) {
+          const prods = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
+          if (prods && prods.length > 0) {
+            setProducts(prods);
+            localStorage.setItem('noor_products', JSON.stringify(prods));
             setIsCloudConnected(true);
           } else {
-            setIsCloudConnected(true);
+            setIsCloudConnected(res.success !== false);
           }
         }
       } catch (err) {

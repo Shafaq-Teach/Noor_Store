@@ -84,23 +84,35 @@ export const mapProductToDbRow = (prod) => {
 // Fetch all products from Supabase
 export const fetchProductsFromSupabase = async () => {
   try {
-    const { data, error } = await supabase
+    // 1. Try 'products' table directly without strict ordering to avoid missing column errors
+    let { data, error } = await supabase
       .from('products')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('*');
+
+    // 2. If 'products' table was not found, try 'product'
+    if (error && (error.code === '42P01' || error.message?.toLowerCase().includes('does not exist') || error.message?.toLowerCase().includes('not found'))) {
+      console.warn('Trying fallback table name "product"...');
+      const fallbackRes = await supabase.from('product').select('*');
+      if (!fallbackRes.error) {
+        data = fallbackRes.data;
+        error = null;
+      }
+    }
 
     if (error) {
-      console.warn('Supabase fetch error:', error.message || error);
-      return null;
+      console.error('Supabase fetch error:', error);
+      return { success: false, error: error.message || JSON.stringify(error), data: [] };
     }
 
-    if (Array.isArray(data) && data.length > 0) {
-      return data.map(mapDbRowToProduct).filter(Boolean);
+    if (Array.isArray(data)) {
+      const mapped = data.map(mapDbRowToProduct).filter(Boolean);
+      return { success: true, raw: data, data: mapped };
     }
-    return [];
+
+    return { success: true, raw: [], data: [] };
   } catch (err) {
-    console.warn('Supabase network error:', err);
-    return null;
+    console.error('Supabase network exception:', err);
+    return { success: false, error: err.message || String(err), data: [] };
   }
 };
 

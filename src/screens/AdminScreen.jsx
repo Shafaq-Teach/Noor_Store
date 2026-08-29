@@ -101,17 +101,28 @@ export const AdminScreen = () => {
     setIsManualSyncing(true);
     setManualSyncMsg(null);
     try {
-      const cloudProds = await fetchProductsFromSupabase();
-      if (cloudProds && cloudProds.length > 0) {
-        setManualSyncMsg({ type: 'success', text: `✅ بۇلۇتتىن ${cloudProds.length} دانە مەھسۇلات تولۇق يېڭىلاندى!` });
+      const res = await fetchProductsFromSupabase();
+      if (res && res.success) {
+        const count = (res.data && res.data.length) || 0;
+        if (count > 0) {
+          setManualSyncMsg({ type: 'success', text: `✅ بۇلۇتتىن ${count} دانە مەھسۇلات تولۇق يېڭىلاندى!` });
+        } else {
+          setManualSyncMsg({ 
+            type: 'info', 
+            text: `ℹ️ Supabase بىلەن نورمال ئۇلاندى، ئەمما 'products' جەدۋىلىدە ھازىرچە 0 دانە مەھسۇلات بار. دېتالىڭىز قوشقان مەھسۇلات جەدۋەل نامىنىڭ 'products' ئىكەنلىكىنى جەزملەڭ.` 
+          });
+        }
       } else {
-        setManualSyncMsg({ type: 'info', text: 'بۇلۇتتا تېخى مەھسۇلات يوق ياكى تور ئۇلىنىشىنى كۈتۈۋاتىدۇ.' });
+        setManualSyncMsg({ 
+          type: 'error', 
+          text: `❌ سۇپابەس ئۇلىنىش خاتالىقى: ${res?.error || 'نامەلۇم خاتالىق'}` 
+        });
       }
     } catch (err) {
       setManualSyncMsg({ type: 'error', text: 'بۇلۇتتىن يېڭىلاشتا خاتالىق كۆرۈلدى: ' + (err.message || err) });
     } finally {
       setIsManualSyncing(false);
-      setTimeout(() => setManualSyncMsg(null), 5000);
+      setTimeout(() => setManualSyncMsg(null), 9000);
     }
   };
 
