@@ -1,4 +1,4 @@
-﻿import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 
 export const SUPABASE_URL = 'https://yufuhjdmzgehwnypdpba.supabase.co';
 export const SUPABASE_KEY = 'sb_publishable_db9lknMr2xWIuxzdBUIvww_le2sVZEu';
@@ -381,5 +381,79 @@ export const deleteOrderFromSupabase = async (orderId) => {
   } catch (err) {
     console.warn('Supabase delete order exception:', err);
     return { success: false, error: err };
+  }
+};
+
+// ==========================================
+// 4. SHARED REALTIME CART (WEB <-> MOBILE APP)
+// ==========================================
+
+export const fetchCartFromSupabase = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('status', 'Cart')
+      .order('id', { ascending: false })
+      .limit(1);
+
+    if (error || !data || data.length === 0) return null;
+    const row = data[0];
+    let items = [];
+    if (typeof row.items_json === 'string') {
+      items = JSON.parse(row.items_json);
+    } else if (Array.isArray(row.items_json)) {
+      items = row.items_json;
+    }
+    return items;
+  } catch (err) {
+    console.warn('Fetch shared cart exception:', err);
+    return null;
+  }
+};
+
+export const syncCartToSupabase = async (cartMap) => {
+  try {
+    const itemsList = Object.values(cartMap).map(item => ({
+      id: item.product?.id || item.id,
+      name: item.product?.nameUg || item.product?.nameEn || item.name || 'Product',
+      price: Number(item.product?.price || item.price || 0),
+      qty: Number(item.quantity || 1),
+      image: item.product?.imageResName || ''
+    }));
+
+    const total = itemsList.reduce((sum, i) => sum + (i.price * i.qty), 0);
+
+    const { data: existing } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('status', 'Cart')
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      await supabase
+        .from('orders')
+        .update({
+          items_json: JSON.stringify(itemsList),
+          total_price: total,
+          order_date: Date.now()
+        })
+        .eq('id', existing[0].id);
+    } else {
+      const { data: allOrders } = await supabase.from('orders').select('id');
+      const maxId = allOrders && allOrders.length > 0 ? Math.max(...allOrders.map(o => Number(o.id) || 0)) : 0;
+      await supabase.from('orders').insert([{
+        id: maxId + 1,
+        customer_name: 'ئورتاق سىۋەت (Shared Cart)',
+        customer_phone: 'shared_cart',
+        items_json: JSON.stringify(itemsList),
+        total_price: total,
+        order_date: Date.now(),
+        status: 'Cart',
+        note: 'Shared Cart across Web & Mobile App'
+      }]);
+    }
+  } catch (err) {
+    console.warn('Sync shared cart exception:', err);
   }
 };
