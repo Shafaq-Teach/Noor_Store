@@ -126,27 +126,59 @@ export const AdminScreen = () => {
     }
   };
 
-  const handleMultiImageChange = (e) => {
+  const compressImageFile = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (loadEvt) => {
+        const img = document.createElement('img');
+        img.onload = () => {
+          const maxDim = 600;
+          let width = img.width;
+          let height = img.height;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          resolve(compressedDataUrl);
+        };
+        img.onerror = () => resolve(loadEvt.target.result);
+        img.src = loadEvt.target.result;
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleMultiImageChange = async (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
     const remainingSlots = 3 - selectedImages.length;
     const filesToProcess = files.slice(0, remainingSlots > 0 ? remainingSlots : 3);
 
-    filesToProcess.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (loadEvt) => {
-        const base64Url = loadEvt.target.result;
+    for (const file of filesToProcess) {
+      const compressedUrl = await compressImageFile(file);
+      if (compressedUrl) {
         setSelectedImages((prev) => {
-          const next = [...prev, { url: base64Url, name: file.name }].slice(0, 3);
+          const next = [...prev, { url: compressedUrl, name: file.name }].slice(0, 3);
           if (next[0]) setNewProdImg1(next[0].url);
           if (next[1]) setNewProdImg2(next[1].url);
           if (next[2]) setNewProdImg3(next[2].url);
           return next;
         });
-      };
-      reader.readAsDataURL(file);
-    });
+      }
+    }
   };
 
   const removeSelectedImage = (index) => {
