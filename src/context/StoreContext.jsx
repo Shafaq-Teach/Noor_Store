@@ -38,6 +38,8 @@ export const StoreProvider = ({ children }) => {
     const saved = localStorage.getItem('noor_products');
     return saved ? JSON.parse(saved) : initialProducts;
   });
+  const productsRef = useRef(products);
+  productsRef.current = products;
 
   const [categories] = useState(initialCategories);
 
@@ -363,15 +365,15 @@ export const StoreProvider = ({ children }) => {
               const newCartMap = {};
               (rawItems || []).forEach(item => {
                 if (item && item.id) {
-                  const prod = products.find(p => String(p.id) === String(item.id)) || {
+                  const prod = productsRef.current.find(p => String(p.id) === String(item.id)) || {
                     id: item.id,
-                    nameUg: item.name || 'مەھسۇلات',
-                    nameAr: item.name || 'منتج',
-                    nameEn: item.name || 'Product',
+                    nameUg: item.name || item.nameUg || 'مەھسۇلات',
+                    nameAr: item.name || item.nameAr || 'منتج',
+                    nameEn: item.name || item.nameEn || 'Product',
                     price: Number(item.price) || 0,
-                    imageResName: item.image || '/images/img_phones_1786037591338.jpg'
+                    imageResName: item.image || item.imageResName || '/images/img_phones_1786037591338.jpg'
                   };
-                  newCartMap[item.id] = { product: prod, quantity: Number(item.qty) || 1 };
+                  newCartMap[item.id] = { product: prod, quantity: Number(item.qty || item.quantity || 1) };
                 }
               });
               setCartMap(newCartMap);
@@ -412,15 +414,15 @@ export const StoreProvider = ({ children }) => {
           const newCartMap = {};
           sharedItems.forEach(item => {
             if (item && item.id) {
-              const prod = products.find(p => String(p.id) === String(item.id)) || {
+              const prod = productsRef.current.find(p => String(p.id) === String(item.id)) || {
                 id: item.id,
-                nameUg: item.name || 'مەھسۇلات',
-                nameAr: item.name || 'منتج',
-                nameEn: item.name || 'Product',
+                nameUg: item.name || item.nameUg || 'مەھسۇلات',
+                nameAr: item.name || item.nameAr || 'منتج',
+                nameEn: item.name || item.nameEn || 'Product',
                 price: Number(item.price) || 0,
-                imageResName: item.image || '/images/img_phones_1786037591338.jpg'
+                imageResName: item.image || item.imageResName || '/images/img_phones_1786037591338.jpg'
               };
-              newCartMap[item.id] = { product: prod, quantity: Number(item.qty) || 1 };
+              newCartMap[item.id] = { product: prod, quantity: Number(item.qty || item.quantity || 1) };
             }
           });
           setCartMap(prev => {
