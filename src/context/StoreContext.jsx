@@ -403,8 +403,43 @@ export const StoreProvider = ({ children }) => {
       )
       .subscribe();
 
+    // Active polling every 3 seconds to guarantee instant cart sync across mobile & web
+    const cartPollInterval = setInterval(async () => {
+      if (!isMounted) return;
+      try {
+        const sharedItems = await fetchCartFromSupabase();
+        if (sharedItems && Array.isArray(sharedItems)) {
+          const newCartMap = {};
+          sharedItems.forEach(item => {
+            if (item && item.id) {
+              const prod = products.find(p => String(p.id) === String(item.id)) || {
+                id: item.id,
+                nameUg: item.name || 'مەھسۇلات',
+                nameAr: item.name || 'منتج',
+                nameEn: item.name || 'Product',
+                price: Number(item.price) || 0,
+                imageResName: item.image || '/images/img_phones_1786037591338.jpg'
+              };
+              newCartMap[item.id] = { product: prod, quantity: Number(item.qty) || 1 };
+            }
+          });
+          setCartMap(prev => {
+            const prevKeys = Object.keys(prev).sort().join(',');
+            const newKeys = Object.keys(newCartMap).sort().join(',');
+            const prevQty = Object.values(prev).reduce((s, i) => s + (i.quantity || 0), 0);
+            const newQty = Object.values(newCartMap).reduce((s, i) => s + (i.quantity || 0), 0);
+            if (prevKeys === newKeys && prevQty === newQty) return prev;
+            return newCartMap;
+          });
+        }
+      } catch (e) {
+        // silent catch
+      }
+    }, 3000);
+
     return () => {
       isMounted = false;
+      clearInterval(cartPollInterval);
       supabase.removeChannel(productsChannel);
       supabase.removeChannel(reviewsChannel);
       supabase.removeChannel(ordersChannel);
