@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useStore } from '../context/StoreContext';
-import { fetchProductsFromSupabase } from '../utils/supabaseClient';
+import { fetchProductsFromSupabase, supabase } from '../utils/supabaseClient';
 import { getAssetUrl } from '../utils/assetHelper';
 import { 
   ShieldCheck, 
@@ -106,17 +106,38 @@ export const AdminScreen = () => {
     logs: []
   });
   const [isChangingGroup, setIsChangingGroup] = useState(false);
+  const [isRefreshingGroups, setIsRefreshingGroups] = useState(false);
   const [groupSuccessMsg, setGroupSuccessMsg] = useState(null);
 
   const fetchSyncEngineStatus = async () => {
+    // 1. Try local daemon endpoint first
     try {
-      const res = await fetch('http://localhost:3000/api/status');
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1200);
+      const res = await fetch('http://localhost:3000/api/status', { signal: controller.signal });
+      clearTimeout(timeoutId);
       if (res.ok) {
         const data = await res.json();
-        setSyncEngineData(data);
+        if (data && data.telegramStatus) {
+          setSyncEngineData(data);
+          return;
+        }
       }
     } catch (e) {
-      // Sync engine may be offline
+      // Local daemon not on same device, fallback to Supabase cloud state
+    }
+
+    // 2. Read from Supabase Cloud State (accessible globally on mobile / any device)
+    try {
+      const { data, error } = await supabase.from('reviews').select('comment').eq('id', 999999).maybeSingle();
+      if (data && data.comment) {
+        const parsed = JSON.parse(data.comment);
+        if (parsed && parsed.telegramStatus) {
+          setSyncEngineData(parsed);
+        }
+      }
+    } catch (err) {
+      // silent
     }
   };
 
@@ -131,22 +152,53 @@ export const AdminScreen = () => {
   const handleSelectWhatsAppGroup = async (groupId) => {
     if (!groupId) return;
     setIsChangingGroup(true);
+    
+    // 1. Try local API
     try {
-      const res = await fetch('http://localhost:3000/api/select-group', {
+      await fetch('http://localhost:3000/api/select-group', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ groupId })
       });
-      const data = await res.json();
-      if (data.success) {
-        setGroupSuccessMsg(`✅ نىشانلىق WhatsApp گۇرۇپپىسى «${data.selectedGroup.subject}» غا تەڭشەلدى!`);
-        fetchSyncEngineStatus();
-      }
+    } catch (e) {}
+
+    // 2. Push command to Supabase Cloud so SyncEngine picks it up
+    try {
+      const cmdPayload = JSON.stringify({ command: 'SET_GROUP', targetGroupId: groupId, time: Date.now() });
+      await supabase.from('reviews').update({ admin_reply: cmdPayload }).eq('id', 999999);
+      
+      const foundGrp = syncEngineData.groups?.find(g => g.id === groupId);
+      const grpName = foundGrp ? foundGrp.subject : 'WhatsApp';
+      setGroupSuccessMsg(`✅ نىشانلىق WhatsApp گۇرۇپپىسى «${grpName}» غا تەڭشەلدى!`);
+      fetchSyncEngineStatus();
     } catch (e) {
       setGroupSuccessMsg('❌ تەڭشەشتە خاتالىق كۆرۈلدى');
     } finally {
       setIsChangingGroup(false);
       setTimeout(() => setGroupSuccessMsg(null), 4000);
+    }
+  };
+
+  const handleRefreshWhatsAppGroups = async () => {
+    setIsRefreshingGroups(true);
+    // 1. Try local API
+    try {
+      await fetch('http://localhost:3000/api/refresh-groups', { method: 'POST' });
+    } catch (e) {}
+
+    // 2. Push command to Supabase Cloud
+    try {
+      const cmdPayload = JSON.stringify({ command: 'REFRESH_GROUPS', time: Date.now() });
+      await supabase.from('reviews').update({ admin_reply: cmdPayload }).eq('id', 999999);
+      setGroupSuccessMsg('🔄 گۇرۇپپىلارنى يېڭىلاش بۇيرۇقى يوللاندى...');
+      setTimeout(fetchSyncEngineStatus, 2000);
+    } catch (e) {
+      // silent
+    } finally {
+      setTimeout(() => {
+        setIsRefreshingGroups(false);
+        setGroupSuccessMsg(null);
+      }, 3500);
     }
   };
 
@@ -738,9 +790,16 @@ export const AdminScreen = () => {
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold flex items-center gap-1.5 text-emerald-500">
                   <Radio className="w-4 h-4" />
-                  <span>🎯 قايسى WhatsApp گۇرۇپپىسىغا ئاپتوماتىك يوللانسۇن؟ (گۇرۇپپىنى تاللاڭ)</span>
+                  <span>🎯 قايسى WhatsApp گۇرۇپپىسىغا ئاپتوماتىك يوللانسۇن؟</span>
                 </label>
-                {isChangingGroup && <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-500" />}
+                <button
+                  onClick={handleRefreshWhatsAppGroups}
+                  disabled={isRefreshingGroups}
+                  className="px-2.5 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-500 text-[11px] font-bold flex items-center gap-1 border border-emerald-500/30 transition-all cursor-pointer"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isRefreshingGroups ? 'animate-spin' : ''}`} />
+                  <span>{isRefreshingGroups ? 'تەكشۈرۈۋاتىدۇ...' : '🔄 گۇرۇپپىلارنى يېڭىلاش'}</span>
+                </button>
               </div>
 
               <select
@@ -1063,7 +1122,7 @@ export const AdminScreen = () => {
       {/* TAB 5: REVIEWS MODERATION */}
       {activeTab === 'reviews' && (
         <div className="space-y-3 animate-in fade-in">
-          {reviews.map(rev => (
+          {reviews.filter(rev => rev.userName !== '__SYNC_STATE__' && rev.user_name !== '__SYNC_STATE__').map(rev => (
             <div 
               key={rev.id}
               className="p-4 rounded-3xl border shadow-sm space-y-2.5"
