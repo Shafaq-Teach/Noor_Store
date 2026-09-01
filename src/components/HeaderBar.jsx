@@ -64,19 +64,7 @@ export const HeaderBar = () => {
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* AI Advisor Quick Button */}
-          <button
-            onClick={openAiAdvisor}
-            className="relative p-1.5 sm:px-2.5 sm:py-1.5 rounded-full flex items-center gap-1 text-xs font-semibold shadow-sm hover:scale-105 active:scale-95 transition-all text-white"
-            style={{ 
-              background: `linear-gradient(135deg, ${currentTheme.primary}, ${currentTheme.secondary})`
-            }}
-            title={t('ai_assistant')}
-          >
-            <Sparkles className="w-4 h-4 animate-pulse" />
-            <span className="hidden md:inline text-[11px]">{t('ai_advisor')}</span>
-          </button>
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
 
           {/* Map Location */}
           <button

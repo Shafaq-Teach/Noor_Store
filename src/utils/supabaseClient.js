@@ -74,18 +74,21 @@ export const insertProductToSupabase = async (prod) => {
     // Get max ID to avoid sequence conflict
     const { data: allProds } = await supabase.from('products').select('id');
     const maxId = allProds && allProds.length > 0 ? Math.max(...allProds.map(p => Number(p.id) || 0)) : 0;
-    const newId = maxId + 1;
+    const newId = (maxId > 0 ? maxId : 100) + 1;
+
+    const primaryName = prod.nameUg || prod.nameAr || prod.nameEn || 'Noor Product';
+    const primaryDesc = prod.descriptionUg || prod.descriptionAr || prod.descriptionEn || '';
 
     const dbRow = {
       id: newId,
-      name_ug: prod.nameUg || '',
-      name_ar: prod.nameAr || prod.nameUg || '',
-      name_en: prod.nameEn || prod.nameUg || '',
-      description_ug: prod.descriptionUg || '',
-      description_ar: prod.descriptionAr || '',
-      description_en: prod.descriptionEn || '',
+      name_ug: primaryName,
+      name_ar: prod.nameAr || primaryName,
+      name_en: prod.nameEn || primaryName,
+      description_ug: primaryDesc,
+      description_ar: prod.descriptionAr || primaryDesc,
+      description_en: prod.descriptionEn || primaryDesc,
       price: Number(prod.price) || 0,
-      original_price: prod.originalPrice ? Number(prod.originalPrice) : (Number(prod.price) * 1.1),
+      original_price: prod.originalPrice ? Number(prod.originalPrice) : (Number(prod.price || 0) * 1.1),
       category_id: prod.categoryId || 'phones',
       brand: prod.brand || 'Apple',
       image_res_name: prod.imageResName || '/images/img_phones_1786037591338.jpg',
@@ -93,7 +96,7 @@ export const insertProductToSupabase = async (prod) => {
       image_res_name3: prod.imageResName3 || '',
       is_featured: !!prod.isFeatured,
       in_stock: prod.inStock !== false,
-      specs_ug: prod.specsUg || '',
+      specs_ug: prod.specsUg || `Brand: ${prod.brand || 'Apple'}`,
       specs_ar: prod.specsAr || '',
       specs_en: prod.specsEn || '',
       likes_count: Number(prod.likesCount) || 0,
@@ -105,7 +108,7 @@ export const insertProductToSupabase = async (prod) => {
       console.warn('Supabase insert product error:', error);
       return { success: false, error };
     }
-    return { success: true, data: data && data[0] ? mapDbRowToProduct(data[0]) : null };
+    return { success: true, data: data && data[0] ? mapDbRowToProduct(data[0]) : mapDbRowToProduct(dbRow) };
   } catch (err) {
     console.warn('Supabase insert product exception:', err);
     return { success: false, error: err };

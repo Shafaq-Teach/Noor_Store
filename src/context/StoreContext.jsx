@@ -236,8 +236,19 @@ export const StoreProvider = ({ children }) => {
         // 1. Fetch Products
         const pRes = await fetchProductsFromSupabase();
         if (isMounted && pRes && pRes.data && pRes.data.length > 0) {
-          setProducts(pRes.data);
-          localStorage.setItem('noor_products', JSON.stringify(pRes.data));
+          setProducts(prev => {
+            const remoteMap = new Map();
+            pRes.data.forEach(p => remoteMap.set(String(p.id), p));
+            // Keep remote products first, and preserve any custom local ones not yet synced
+            const merged = [...pRes.data];
+            prev.forEach(p => {
+              if (!remoteMap.has(String(p.id))) {
+                merged.push(p);
+              }
+            });
+            localStorage.setItem('noor_products', JSON.stringify(merged));
+            return merged;
+          });
           setIsCloudConnected(true);
         }
 
@@ -643,51 +654,72 @@ export const StoreProvider = ({ children }) => {
       heartsCount: 0
     };
     const res = await insertProductToSupabase(product);
-    if (res && res.success && res.data) {
-      setProducts(prev => [res.data, ...prev]);
-    } else {
-      const fallback = { ...product, id: Date.now() };
-      setProducts(prev => [fallback, ...prev]);
-    }
+    const savedProd = (res && res.success && res.data) ? res.data : { ...product, id: (products.length > 0 ? Math.max(...products.map(p => Number(p.id) || 0)) : 100) + 1 };
+    
+    setProducts(prev => {
+      const next = [savedProd, ...prev.filter(p => String(p.id) !== String(savedProd.id))];
+      localStorage.setItem('noor_products', JSON.stringify(next));
+      return next;
+    });
   };
 
   const updateProduct = async (updatedProd) => {
-    setProducts(prev => prev.map(p => p.id === updatedProd.id ? updatedProd : p));
+    setProducts(prev => {
+      const next = prev.map(p => String(p.id) === String(updatedProd.id) ? updatedProd : p);
+      localStorage.setItem('noor_products', JSON.stringify(next));
+      return next;
+    });
     await updateProductInSupabase(updatedProd.id, updatedProd);
   };
 
   const updateProductPrice = async (productId, newPrice) => {
     const numPrice = Number(newPrice);
-    setProducts(prev => prev.map(p => p.id === productId ? { ...p, price: numPrice } : p));
+    setProducts(prev => {
+      const next = prev.map(p => String(p.id) === String(productId) ? { ...p, price: numPrice } : p);
+      localStorage.setItem('noor_products', JSON.stringify(next));
+      return next;
+    });
     await updateProductInSupabase(productId, { price: numPrice, originalPrice: numPrice * 1.1 });
   };
 
   const toggleStock = async (productId) => {
     let nextStock = false;
-    setProducts(prev => prev.map(p => {
-      if (p.id === productId) {
-        nextStock = !p.inStock;
-        return { ...p, inStock: nextStock };
-      }
-      return p;
-    }));
+    setProducts(prev => {
+      const next = prev.map(p => {
+        if (String(p.id) === String(productId)) {
+          nextStock = !p.inStock;
+          return { ...p, inStock: nextStock };
+        }
+        return p;
+      });
+      localStorage.setItem('noor_products', JSON.stringify(next));
+      return next;
+    });
     await updateProductInSupabase(productId, { inStock: nextStock });
   };
 
   const toggleFeatured = async (productId) => {
     let nextFeatured = false;
-    setProducts(prev => prev.map(p => {
-      if (p.id === productId) {
-        nextFeatured = !p.isFeatured;
-        return { ...p, isFeatured: nextFeatured };
-      }
-      return p;
-    }));
+    setProducts(prev => {
+      const next = prev.map(p => {
+        if (String(p.id) === String(productId)) {
+          nextFeatured = !p.isFeatured;
+          return { ...p, isFeatured: nextFeatured };
+        }
+        return p;
+      });
+      localStorage.setItem('noor_products', JSON.stringify(next));
+      return next;
+    });
     await updateProductInSupabase(productId, { isFeatured: nextFeatured });
   };
 
   const deleteProduct = async (productId) => {
-    setProducts(prev => prev.filter(p => p.id !== productId));
+    setProducts(prev => {
+      const next = prev.filter(p => String(p.id) !== String(productId));
+      localStorage.setItem('noor_products', JSON.stringify(next));
+      return next;
+    });
     await deleteProductFromSupabase(productId);
   };
 
