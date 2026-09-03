@@ -734,12 +734,20 @@ export const AdminScreen = () => {
             </div>
             <div className="flex items-center gap-2">
               <a 
+                href="http://localhost:3000" 
+                target="_blank" 
+                rel="noreferrer"
+                className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-bold transition-all shadow-md text-white flex items-center gap-1.5"
+              >
+                🖥️ سىستېما كۆزنىكىنى ئايرىم ئېچىش
+              </a>
+              <a 
                 href="https://shafaq-teach.github.io/Noor_Store/" 
                 target="_blank" 
                 rel="noreferrer"
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold transition-all shadow-md text-white flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold transition-all shadow-md text-white flex items-center gap-1.5"
               >
-                🌐 تور دۇكىنىنى كۆرۈش
+                🌐 تور دۇكىنى
               </a>
               <button 
                 type="button"
