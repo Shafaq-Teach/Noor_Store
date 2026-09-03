@@ -455,3 +455,52 @@ export const syncCartToSupabase = async (cartMap) => {
     console.warn('Sync shared cart exception:', err);
   }
 };
+
+// ==========================================
+// 5. GLOBAL ADMIN PIN SYNCHRONIZATION
+// ==========================================
+
+export const fetchAdminPinFromSupabase = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('comment')
+      .eq('user_name', '__ADMIN_PIN__')
+      .maybeSingle();
+
+    if (!error && data && data.comment) {
+      return data.comment.trim();
+    }
+  } catch (err) {
+    console.warn('Fetch admin PIN exception:', err);
+  }
+  return '1234';
+};
+
+export const updateAdminPinInSupabase = async (newPin) => {
+  try {
+    const pin = String(newPin).trim();
+    const row = {
+      id: 888888,
+      product_id: 1,
+      user_name: '__ADMIN_PIN__',
+      comment: pin,
+      rating: 5,
+      timestamp: Date.now()
+    };
+    const { data, error } = await supabase
+      .from('reviews')
+      .upsert([row], { onConflict: 'id' })
+      .select();
+
+    if (error) {
+      console.error('Update admin PIN error in Supabase:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Update admin PIN exception in Supabase:', err);
+    return false;
+  }
+};
+

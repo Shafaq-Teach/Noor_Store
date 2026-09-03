@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useStore } from '../context/StoreContext';
-import { fetchProductsFromSupabase, supabase } from '../utils/supabaseClient';
+import { fetchProductsFromSupabase, fetchAdminPinFromSupabase, updateAdminPinInSupabase, supabase } from '../utils/supabaseClient';
 import { getAssetUrl } from '../utils/assetHelper';
 import { 
   ShieldCheck, 
@@ -318,10 +318,15 @@ export const AdminScreen = () => {
 
   const [copiedReport, setCopiedReport] = useState(false);
 
-  // Auth
-  const handleLogin = (e) => {
+  // Auth with Global Cloud PIN
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (pinInput.trim() === adminPin) {
+    const cleanInput = pinInput.trim();
+    // Fetch latest PIN directly from Supabase Cloud to ensure freshly changed PIN is required
+    const latestCloudPin = await fetchAdminPinFromSupabase();
+    if (cleanInput === latestCloudPin) {
+      setAdminPin(latestCloudPin);
+      localStorage.setItem('noor_admin_pin', latestCloudPin);
       setIsAdminLoggedIn(true);
       setPinError(null);
       setPinInput('');
@@ -334,9 +339,10 @@ export const AdminScreen = () => {
     setIsAdminLoggedIn(false);
   };
 
-  const handleChangePinSubmit = (e) => {
+  const handleChangePinSubmit = async (e) => {
     e.preventDefault();
-    if (oldPin !== adminPin) {
+    const latestCloudPin = await fetchAdminPinFromSupabase();
+    if (oldPin.trim() !== latestCloudPin && oldPin.trim() !== adminPin) {
       setChangePinMsg({ type: 'error', text: t('current_pin_wrong') });
       return;
     }
@@ -344,7 +350,15 @@ export const AdminScreen = () => {
       setChangePinMsg({ type: 'error', text: t('pin_mismatch') });
       return;
     }
-    setAdminPin(newPin.trim());
+
+    const cleanNewPin = newPin.trim();
+    // 1. Immediately update cloud database so all devices & apps invalidate the old PIN
+    await updateAdminPinInSupabase(cleanNewPin);
+    
+    // 2. Update local state
+    setAdminPin(cleanNewPin);
+    localStorage.setItem('noor_admin_pin', cleanNewPin);
+
     setChangePinMsg({ type: 'success', text: t('pin_changed_success') });
     setTimeout(() => {
       setShowChangePinModal(false);

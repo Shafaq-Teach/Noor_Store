@@ -20,7 +20,9 @@ import {
   deleteOrderFromSupabase,
   mapDbRowToOrder,
   fetchCartFromSupabase,
-  syncCartToSupabase
+  syncCartToSupabase,
+  fetchAdminPinFromSupabase,
+  updateAdminPinInSupabase
 } from '../utils/supabaseClient';
 import confetti from 'canvas-confetti';
 
@@ -287,6 +289,13 @@ export const StoreProvider = ({ children }) => {
           });
           setCartMap(newCartMap);
         }
+
+        // 5. Fetch Global Admin PIN
+        const cloudPin = await fetchAdminPinFromSupabase();
+        if (cloudPin && isMounted) {
+          setAdminPin(cloudPin);
+          localStorage.setItem('noor_admin_pin', cloudPin);
+        }
       } catch (err) {
         console.warn('Supabase initial fetch failed:', err);
       } finally {
@@ -295,6 +304,17 @@ export const StoreProvider = ({ children }) => {
     };
 
     loadDataFromCloud();
+
+    // Periodic check for Global Admin PIN changes (invalidates old PIN everywhere)
+    const pinPollInterval = setInterval(async () => {
+      try {
+        const p = await fetchAdminPinFromSupabase();
+        if (p && isMounted) {
+          setAdminPin(p);
+          localStorage.setItem('noor_admin_pin', p);
+        }
+      } catch (e) {}
+    }, 4000);
 
     // 1. Products Realtime Channel
     const productsChannel = supabase
