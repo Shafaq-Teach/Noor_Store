@@ -108,7 +108,7 @@ export const AdminScreen = () => {
   const [isChangingGroup, setIsChangingGroup] = useState(false);
   const [isRefreshingGroups, setIsRefreshingGroups] = useState(false);
   const [groupSuccessMsg, setGroupSuccessMsg] = useState(null);
-  const [showSystemModal, setShowSystemModal] = useState(false);
+  const [showSyncSystemWindowModal, setShowSyncSystemWindowModal] = useState(false);
 
   const fetchSyncEngineStatus = async () => {
     // 1. Try local daemon endpoint first
@@ -736,11 +736,11 @@ export const AdminScreen = () => {
               </div>
 
               <button 
-                onClick={() => setShowSystemModal(true)}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-600 to-emerald-600 hover:from-sky-500 hover:to-emerald-500 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                type="button"
+                onClick={() => setShowSyncSystemWindowModal(true)}
+                className="px-3.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
               >
-                <span>🖥️</span>
-                <span>سىستېما كۆزنىكىنى ئېچىش</span>
+                🖥️ سىستېما كۆزنىكىنى ئېچىش
               </button>
             </div>
 
@@ -1501,208 +1501,164 @@ export const AdminScreen = () => {
         </div>
       )}
 
-      {/* Full Supabase Cloud Powered Auto-Sync System Dashboard Modal */}
-      {showSystemModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in">
+      {/* SYSTEM WINDOW MODAL (ORIGINAL COMPLETE DASHBOARD WORKING 24/7 GLOBALLY VIA SUPABASE) */}
+      {showSyncSystemWindowModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in overflow-y-auto">
           <div 
-            className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-3xl border shadow-2xl p-5 sm:p-7 space-y-6 relative"
-            style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+            className="w-full max-w-4xl rounded-3xl p-5 sm:p-8 border shadow-2xl space-y-6 my-auto bg-slate-950 text-slate-100 border-slate-800 max-h-[90vh] overflow-y-auto"
+            dir="rtl"
           >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: themeColors.border }}>
+            {/* Header */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl backdrop-blur flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div 
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-lg"
-                  style={{ background: `linear-gradient(135deg, ${currentTheme.primary}, #10B981)` }}
-                >
-                  <Zap className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-amber-400 flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/20">
+                  ⚡
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-base sm:text-lg font-bold">Noor Store - ئاپتوماتىك ماس قەدەملەش سىستېمىسى</h2>
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                      🟢 Supabase Cloud Live
-                    </span>
-                  </div>
-                  <p className="text-xs opacity-75" style={{ color: themeColors.textSecondary }}>
-                    ھەرقانداق ئۈسكۈنە، كومپيۇتېر ياكى تېلېفوندىن دەل ۋاقتىدا كۆرۈش ۋە باشقۇرۇش
-                  </p>
+                  <h1 className="text-base sm:text-xl font-bold text-emerald-400">Noor Store - ئاپتوماتىك ماس قەدەملەش سىستېمىسى</h1>
+                  <p className="text-xs text-slate-400">Telegram ➡️ Supabase (تور بېكەت + ئەپ) ➡️ WhatsApp</p>
                 </div>
               </div>
-              <button 
-                onClick={() => setShowSystemModal(false)}
-                className="p-2 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <a 
+                  href="https://shafaq-teach.github.io/Noor_Store/" 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold transition-all shadow-md text-white flex items-center gap-1.5"
+                >
+                  🌐 تور دۇكىنىنى كۆرۈش
+                </a>
+                <button 
+                  onClick={() => setShowSyncSystemWindowModal(false)}
+                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
-            {/* Live Status Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-xs">
+            {/* Status Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               
-              {/* Telegram Card */}
-              <div className="p-4 rounded-2xl border bg-black/5 dark:bg-white/5 space-y-2" style={{ borderColor: themeColors.border }}>
+              {/* Telegram Status */}
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold flex items-center gap-2 text-sky-400">
-                    <Send className="w-4 h-4" /> Telegram Bot
+                  <span className="text-sm font-bold flex items-center gap-2">
+                    <span>✈️</span> Telegram Bot
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                     ✅ ئۇلاندى
                   </span>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-xs">بوت: <a href="https://t.me/NoorStore520_Bot" target="_blank" rel="noreferrer" className="text-sky-400 font-bold hover:underline">@NoorStore520_Bot</a></p>
-                  <p className="text-[11px] opacity-70">Admin Telegram ID: <b>7251543464</b></p>
-                  <p className="text-[10px] text-emerald-400">⚡ مەھسۇلاتنى يۈكلىسىڭىز دەرھال تارقىتىدۇ</p>
-                </div>
+                <p className="text-xs text-slate-300 font-bold">بوت: @NoorStore520_Bot</p>
+                <p className="text-[11px] text-slate-400">قانىتىش قانىلى: @NoorStore2</p>
+                <p className="text-[10px] text-slate-500">Admin ID: 7251543464</p>
               </div>
 
-              {/* WhatsApp Card */}
-              <div className="p-4 rounded-2xl border bg-black/5 dark:bg-white/5 space-y-2" style={{ borderColor: themeColors.border }}>
+              {/* Supabase Status */}
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold flex items-center gap-2 text-emerald-400">
-                    <Radio className="w-4 h-4" /> WhatsApp گۇرۇپپىسى
+                  <span className="text-sm font-bold flex items-center gap-2">
+                    <span>☁️</span> Supabase Cloud
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                     ✅ ئاكتىپ
                   </span>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-xs">
-                    مەۋجۇت گۇرۇپپىلار: <b>{syncEngineData.groups?.length || 50} دانە</b>
-                  </p>
-                  <p className="text-[11px] text-emerald-400 font-bold truncate">
-                    🎯 {syncEngineData.selectedGroup?.subject ? `«${syncEngineData.selectedGroup.subject}»` : 'گۇرۇپپا بەلگىلەنگەن'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Supabase Cloud Card */}
-              <div className="p-4 rounded-2xl border bg-black/5 dark:bg-white/5 space-y-2" style={{ borderColor: themeColors.border }}>
-                <div className="flex items-center justify-between">
-                  <span className="font-bold flex items-center gap-2 text-amber-400">
-                    <Smartphone className="w-4 h-4" /> تور بېكەت + ئەپ
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400">
-                    ✅ دەل ۋاقتىدا
-                  </span>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs">ساندان: <b>Supabase Cloud</b></p>
-                  <p className="text-[11px] opacity-70">تور بېكەت ۋە ئاندىروئىد بىرلا ۋاقىتتا يېڭىلىنىدۇ</p>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Target WhatsApp Group Selector Box */}
-            <div className="p-4 sm:p-5 rounded-2xl border space-y-3" style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <label className="text-xs sm:text-sm font-bold flex items-center gap-2 text-emerald-400">
-                  <Radio className="w-4 h-4 text-emerald-400" />
-                  <span>🎯 قايسى WhatsApp گۇرۇپپىسىغا ئاپتوماتىك ئەۋەتىلسۇن؟</span>
-                </label>
-                <button
-                  onClick={handleRefreshWhatsAppGroups}
-                  disabled={isRefreshingGroups}
-                  className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-1.5 border border-emerald-500/30 transition-all cursor-pointer self-start sm:self-auto"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingGroups ? 'animate-spin' : ''}`} />
-                  <span>{isRefreshingGroups ? 'تەكشۈرۈۋاتىدۇ...' : '🔄 يېڭى گۇرۇپپىلارنى تېپىش'}</span>
-                </button>
-              </div>
-
-              <select
-                value={syncEngineData.selectedGroup?.id || ''}
-                onChange={(e) => handleSelectWhatsAppGroup(e.target.value)}
-                className="w-full px-3.5 py-3 rounded-xl border text-xs sm:text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all"
-                style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border, color: themeColors.textPrimary }}
-              >
-                {syncEngineData.groups && syncEngineData.groups.length > 0 ? (
-                  syncEngineData.groups.map(g => (
-                    <option key={g.id} value={g.id}>
-                      💬 {g.subject}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">گۇرۇپپىلار يۈكلىنىۋاتىدۇ (50 گۇرۇپپا)...</option>
-                )}
-              </select>
-
-              {groupSuccessMsg && (
-                <p className="text-xs font-bold text-emerald-400 animate-in fade-in">
-                  {groupSuccessMsg}
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  تور بېكەت ۋە ئاندىروئىد دېتالى بىلەن دەل ۋاقتىدا ئۇلانغان.
                 </p>
-              )}
-            </div>
-
-            {/* Live Synced Products Log */}
-            <div className="p-4 sm:p-5 rounded-2xl border space-y-3" style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}>
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs sm:text-sm font-bold flex items-center gap-2">
-                  <span>📋</span> تېلېگرامدىن ماس قەدەملەنگەن ئەڭ يېڭى مەھسۇلاتلار خاتىرىسى ({syncEngineData.logs?.length || 0})
-                </h4>
-                <button 
-                  onClick={fetchSyncEngineStatus}
-                  className="text-xs text-sky-400 hover:underline flex items-center gap-1 font-semibold"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" /> يېڭىلاش
-                </button>
+                <p className="text-[10px] text-emerald-400 font-bold">ھەرقانداق ئۈسكۈنىدە ھەرزامان ئوچۇق</p>
               </div>
 
-              {syncEngineData.logs && syncEngineData.logs.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-right">
-                    <thead>
-                      <tr className="border-b opacity-60" style={{ borderColor: themeColors.border }}>
-                        <th className="py-2 px-2">ۋاقتى</th>
-                        <th className="py-2 px-2">مەھسۇلات نامى</th>
-                        <th className="py-2 px-2">باھاسى</th>
-                        <th className="py-2 px-2">Supabase (تور + ئەپ)</th>
-                        <th className="py-2 px-2">WhatsApp گۇرۇپپا</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y" style={{ borderColor: themeColors.border }}>
-                      {syncEngineData.logs.map((log, idx) => (
-                        <tr key={idx} className="hover:bg-black/5 dark:hover:bg-white/5">
-                          <td className="py-2 px-2 opacity-60 font-mono text-[11px]">{log.time}</td>
-                          <td className="py-2 px-2 font-bold">{log.name}</td>
-                          <td className="py-2 px-2 font-bold text-amber-400">¥{log.price}</td>
-                          <td className="py-2 px-2">
-                            {log.supabaseSuccess ? (
-                              <span className="text-emerald-400 font-bold">✅ يۈكلەندى</span>
-                            ) : (
-                              <span className="text-rose-400 font-bold">❌ خاتالىق</span>
-                            )}
-                          </td>
-                          <td className="py-2 px-2">
-                            {log.whatsappSuccess ? (
-                              <span className="text-emerald-400 font-bold">✅ «{log.whatsappGroup}» غا ئەۋەتىلدى</span>
-                            ) : (
-                              <span className="text-slate-400">كۈتۈلمەكتە</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              {/* WhatsApp Status */}
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold flex items-center gap-2">
+                    <span>💬</span> WhatsApp
+                  </span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                    syncEngineData.whatsappStatus === 'CONNECTED'
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      : 'bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse'
+                  }`}>
+                    {syncEngineData.whatsappStatus === 'CONNECTED' ? '✅ ئۇلاندى' : '📷 QR كود كۈتۈلمەكتە'}
+                  </span>
                 </div>
-              ) : (
-                <div className="py-6 text-center space-y-2 opacity-70">
-                  <p className="text-xs">تېخى مەھسۇلات تارقىتىلمىدى.</p>
-                  <p className="text-[11px]">تېلېگرامدا <a href="https://t.me/NoorStore520_Bot" target="_blank" rel="noreferrer" className="text-sky-400 font-bold hover:underline">@NoorStore520_Bot</a> غا رەسىم ۋە ئۇچۇر يوللاپ سىناپ بېقىڭ!</p>
+                
+                {syncEngineData.latestQrDataUrl ? (
+                  <div className="flex flex-col items-center gap-2 p-3 bg-white rounded-2xl shadow-lg">
+                    <img src={syncEngineData.latestQrDataUrl} alt="WhatsApp QR Code" className="w-36 h-36 object-contain" />
+                    <p className="text-[11px] text-slate-900 font-black text-center">📱 تېلېفوندىن سىكاننېرلاڭ</p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    {syncEngineData.whatsappStatus === 'CONNECTED' 
+                      ? `✅ WhatsApp تولۇق ئۇلاندى! (${syncEngineData.groups?.length || 50} گۇرۇپپا)` 
+                      : 'QR كود ھازىرلىنىۋاتىدۇ...'}
+                  </p>
+                )}
+
+                {/* Target Group Dropdown */}
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] text-slate-400 font-bold">🎯 نىشانلىق WhatsApp گۇرۇپپىسى:</label>
+                    <button 
+                      type="button"
+                      onClick={handleRefreshWhatsAppGroups} 
+                      disabled={isRefreshingGroups}
+                      className="text-[10px] text-sky-400 hover:underline cursor-pointer"
+                    >
+                      {isRefreshingGroups ? 'يېڭىلىنىۋاتىدۇ...' : '🔄 يېڭىلاش'}
+                    </button>
+                  </div>
+                  <select 
+                    value={syncEngineData.selectedGroup?.id || ''} 
+                    onChange={(e) => handleSelectWhatsAppGroup(e.target.value)} 
+                    className="w-full px-2.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-emerald-400 font-semibold focus:outline-none focus:border-emerald-500"
+                  >
+                    {syncEngineData.groups && syncEngineData.groups.length > 0 ? (
+                      syncEngineData.groups.map(g => (
+                        <option key={g.id} value={g.id}>{g.subject}</option>
+                      ))
+                    ) : (
+                      <option value="">گۇرۇپپا تېپىلمىدى</option>
+                    )}
+                  </select>
                 </div>
-              )}
+              </div>
+
             </div>
 
-            {/* Quick Actions / Close */}
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                onClick={() => setShowSystemModal(false)}
-                className="px-5 py-2.5 rounded-xl font-bold text-xs bg-slate-700 hover:bg-slate-600 text-white transition-all cursor-pointer shadow-md"
-              >
-                تاقاش
-              </button>
+            {/* Live Sync Logs */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 space-y-4">
+              <h2 className="text-sm font-bold flex items-center gap-2 text-slate-300">
+                <span>📋</span> ئەڭ يېڭى ماس قەدەملەنگەن مەھسۇلاتلار خاتىرىسى ({syncEngineData.logs?.length || 0})
+              </h2>
+
+              {!syncEngineData.logs || syncEngineData.logs.length === 0 ? (
+                <p className="text-xs text-slate-500 py-4 text-center">تېخى مەھسۇلات يوللانمىدى. تېلېگرام بوتىڭىزغا مەھسۇلات رەسىمى ۋە باھاسىنى تاشلاپ سىناپ بېقىڭ!</p>
+              ) : (
+                <div className="space-y-2">
+                  {syncEngineData.logs.map((l, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800/80 text-xs">
+                      <div className="flex items-center gap-3">
+                        <span className="text-slate-500 text-[10px]">{l.time}</span>
+                        <span className="font-bold text-slate-200">{l.name}</span>
+                        <span className="text-emerald-400 font-bold">¥${l.price}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px]">
+                        <span className={l.supabaseSuccess ? 'text-emerald-400' : 'text-rose-400'}>
+                          ☁️ Supabase {l.supabaseSuccess ? 'OK' : 'FAIL'}
+                        </span>
+                        <span className={l.whatsappSuccess ? 'text-emerald-400' : 'text-amber-400'}>
+                          💬 «{l.whatsappGroup || 'WhatsApp'}»
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
           </div>
