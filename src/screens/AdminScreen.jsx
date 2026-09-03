@@ -559,6 +559,17 @@ export const AdminScreen = () => {
 
         {/* Header Right Actions */}
         <div className="flex items-center gap-2">
+          {/* Open Auto Sync System Window Button */}
+          <button
+            onClick={() => setShowSyncSystemWindowModal(true)}
+            className="p-2 px-3 rounded-2xl border text-xs font-semibold flex items-center gap-1.5 hover:opacity-80 transition-all text-emerald-600 dark:text-emerald-400 cursor-pointer shadow-xs"
+            style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+            title="ئاپتوماتىك ماس قەدەملەش سىستېما كۆزنىكىنى ئېچىش"
+          >
+            <Zap className="w-3.5 h-3.5 text-emerald-500" />
+            <span>🖥️ سىستېما كۆزنىكى</span>
+          </button>
+
           {/* Manual Sync Cloud Button */}
           <button
             onClick={handleManualSync}
@@ -1664,6 +1675,17 @@ export const AdminScreen = () => {
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* Quick Usage Guide */}
+            <div className="bg-emerald-950/30 border border-emerald-800/40 rounded-3xl p-5 space-y-2 text-xs text-emerald-200">
+              <h3 className="font-bold text-emerald-400">💡 تېلېگرامدىن قانداق يوللايسىز؟</h3>
+              <p>تېلېگرام قانال ياكى گۇرۇپپىڭىزغا رەسىم بىلەن تۆۋەندىكىدەك ھەرقانداق قېلىپتا يازسىڭىزلا سىستېما تولۇق چۈشىنىدۇ:</p>
+              <div className="p-3 bg-slate-950/80 rounded-xl text-slate-300 font-mono text-[11px] leading-relaxed">
+                iPhone 16 Pro Max (512GB)<br />
+                باھاسى: 8999 يۈەن<br />
+                رەڭگى قارا، پۈتۈنلەي يېڭى، كاپالەتلىك مەھسۇلات.
+              </div>
             </div>
 
           </div>
