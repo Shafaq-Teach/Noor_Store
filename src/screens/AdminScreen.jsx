@@ -203,6 +203,18 @@ export const AdminScreen = () => {
     }
   };
 
+  const handleResetWhatsApp = async () => {
+    try {
+      await fetch('http://localhost:3000/reset-whatsapp', { method: 'POST' });
+    } catch (e) {}
+    try {
+      const cmdPayload = JSON.stringify({ command: 'RESET_WHATSAPP', time: Date.now() });
+      await supabase.from('reviews').update({ admin_reply: cmdPayload }).eq('id', 999999);
+      setGroupSuccessMsg('📷 QR كود تەلەپ قىلىندى، 2 سېكۇنت ساقلاڭ...');
+      setTimeout(fetchSyncEngineStatus, 2000);
+    } catch (e) {}
+  };
+
   // Manual Supabase Sync state
   const [isManualSyncing, setIsManualSyncing] = useState(false);
   const [manualSyncMsg, setManualSyncMsg] = useState(null);
@@ -830,6 +842,14 @@ export const AdminScreen = () => {
                   )}
                 </select>
               </div>
+
+              <button 
+                type="button" 
+                onClick={handleResetWhatsApp}
+                className="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold transition-colors mt-2 cursor-pointer"
+              >
+                🔄 QR كودنى يېڭىلاش / قايتا ئۇلاش
+              </button>
 
               {groupSuccessMsg && (
                 <p className="text-xs font-bold text-emerald-400 pt-1 animate-in fade-in">
@@ -1595,6 +1615,14 @@ export const AdminScreen = () => {
                     )}
                   </select>
                 </div>
+
+                <button 
+                  type="button" 
+                  onClick={handleResetWhatsApp}
+                  className="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold transition-colors mt-2 cursor-pointer"
+                >
+                  🔄 QR كودنى يېڭىلاش / قايتا ئۇلاش
+                </button>
               </div>
 
             </div>
