@@ -707,134 +707,132 @@ export const AdminScreen = () => {
 
       {/* TAB: AUTO SYNC ENGINE (Telegram -> Supabase -> Website + Android App + WhatsApp) */}
       {activeTab === 'autosync' && (
-        <div className="space-y-4 animate-in fade-in">
+        <div className="space-y-6 animate-in fade-in bg-slate-950 text-slate-100 p-4 sm:p-6 rounded-3xl border border-slate-800 shadow-2xl">
           
-          {/* Top Status Banner */}
-          <div 
-            className="p-5 rounded-3xl border shadow-md space-y-3"
-            style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
-          >
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-3" style={{ borderColor: themeColors.border }}>
-              <div className="flex items-center gap-3">
-                <div 
-                  className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-sm"
-                  style={{ background: `linear-gradient(135deg, ${currentTheme.primary}, #10B981)` }}
-                >
-                  <Zap className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold flex items-center gap-2">
-                    <span>⚡ كۆپ سۇپىلىق ئاپتوماتىك ماس قەدەملەش مەركىزى</span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
-                      100% ئاكتىپ
-                    </span>
-                  </h3>
-                  <p className="text-[11px] opacity-75" style={{ color: themeColors.textSecondary }}>
-                    Telegram ➡️ Supabase (تور بېكەت + ئاندىروئىد دېتالى) ➡️ WhatsApp گۇرۇپپىسى
-                  </p>
-                </div>
+          {/* Original Header */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl backdrop-blur flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-amber-400 flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/20">
+                ⚡
               </div>
-
+              <div>
+                <h1 className="text-base sm:text-xl font-bold text-emerald-400">Noor Store - ئاپتوماتىك ماس قەدەملەش سىستېمىسى</h1>
+                <p className="text-xs text-slate-400">Telegram ➡️ Supabase (تور بېكەت + ئەپ) ➡️ WhatsApp</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <a 
+                href="https://shafaq-teach.github.io/Noor_Store/" 
+                target="_blank" 
+                rel="noreferrer"
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold transition-all shadow-md text-white flex items-center gap-1.5"
+              >
+                🌐 تور دۇكىنىنى كۆرۈش
+              </a>
               <button 
                 type="button"
-                onClick={() => setShowSyncSystemWindowModal(true)}
-                className="px-3.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
+                onClick={fetchSyncEngineStatus}
+                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+                title="يېڭىلاش"
               >
-                🖥️ سىستېما كۆزنىكىنى ئېچىش
+                <RefreshCw className="w-4 h-4" />
               </button>
             </div>
+          </div>
 
-            {/* Status Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 text-xs">
-              
-              {/* Telegram Status Card */}
-              <div className="p-3.5 rounded-2xl border bg-black/5 dark:bg-white/5 space-y-1.5" style={{ borderColor: themeColors.border }}>
-                <div className="flex items-center justify-between">
-                  <span className="font-bold flex items-center gap-1.5 text-sky-500">
-                    <Send className="w-3.5 h-3.5" /> Telegram Bot
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-500">
-                    ✅ ئۇلاندى
-                  </span>
-                </div>
-                <p className="text-[11px] opacity-80">بوت: <b className="text-sky-400">@NoorStore520_Bot</b></p>
-                <p className="text-[10px] opacity-65">Admin ID: 7251543464</p>
+          {/* Status Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            
+            {/* Telegram Status Card */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold flex items-center gap-2">
+                  <span>✈️</span> Telegram Bot
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  ✅ ئۇلاندى
+                </span>
               </div>
-
-              {/* WhatsApp Status Card */}
-              <div className="p-3.5 rounded-2xl border bg-black/5 dark:bg-white/5 space-y-1.5" style={{ borderColor: themeColors.border }}>
-                <div className="flex items-center justify-between">
-                  <span className="font-bold flex items-center gap-1.5 text-emerald-500">
-                    <Radio className="w-3.5 h-3.5" /> WhatsApp
-                  </span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    syncEngineData.whatsappStatus === 'CONNECTED' 
-                      ? 'bg-emerald-500/20 text-emerald-500' 
-                      : 'bg-amber-500/20 text-amber-500'
-                  }`}>
-                    {syncEngineData.whatsappStatus === 'CONNECTED' ? '✅ ئۇلاندى' : '⚠️ ئۇلانمىدى'}
-                  </span>
-                </div>
-                <p className="text-[11px] opacity-80">
-                  مەۋجۇت گۇرۇپپىلار: <b>{syncEngineData.groups?.length || 50} دانە</b>
-                </p>
-                <p className="text-[10px] text-emerald-500 font-bold truncate">
-                  🎯 {syncEngineData.selectedGroup?.subject ? `«${syncEngineData.selectedGroup.subject}»` : 'گۇرۇپپا بەلگىلەنگەن'}
-                </p>
-              </div>
-
-              {/* App & Web Status */}
-              <div className="p-3.5 rounded-2xl border bg-black/5 dark:bg-white/5 space-y-1.5" style={{ borderColor: themeColors.border }}>
-                <div className="flex items-center justify-between">
-                  <span className="font-bold flex items-center gap-1.5 text-amber-500">
-                    <Smartphone className="w-3.5 h-3.5" /> تور + ئاندىروئىد
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-500">
-                    ✅ دەل ۋاقتىدا
-                  </span>
-                </div>
-                <p className="text-[11px] opacity-80">Supabase Cloud Sync</p>
-                <p className="text-[10px] opacity-65">1 سېكۇنتتا يېڭى مەھسۇلات چىقىدۇ</p>
-              </div>
-
+              <p className="text-xs text-slate-300 font-bold">بوت: @NoorStore520_Bot</p>
+              <p className="text-[11px] text-slate-400">قانىتىش قانىلى: @NoorStore2</p>
+              <p className="text-[10px] text-slate-500">Admin ID: 7251543464</p>
             </div>
 
-            {/* Target WhatsApp Group Selector */}
-            <div className="p-4 rounded-2xl border space-y-2 mt-2" style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}>
+            {/* Supabase Status Card */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold flex items-center gap-1.5 text-emerald-500">
-                  <Radio className="w-4 h-4" />
-                  <span>🎯 قايسى WhatsApp گۇرۇپپىسىغا ئاپتوماتىك يوللانسۇن؟</span>
-                </label>
-                <button
-                  onClick={handleRefreshWhatsAppGroups}
-                  disabled={isRefreshingGroups}
-                  className="px-2.5 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-500 text-[11px] font-bold flex items-center gap-1 border border-emerald-500/30 transition-all cursor-pointer"
+                <span className="text-sm font-bold flex items-center gap-2">
+                  <span>☁️</span> Supabase Cloud
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  ✅ ئاكتىپ
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                تور بېكەت ۋە ئاندىروئىد دېتالى بىلەن دەل ۋاقتىدا ئۇلانغان.
+              </p>
+              <p className="text-[10px] text-emerald-400 font-bold">ھەرقانداق ئۈسكۈنىدە ھەرزامان ئوچۇق</p>
+            </div>
+
+            {/* WhatsApp Status Card */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold flex items-center gap-2">
+                  <span>💬</span> WhatsApp
+                </span>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                  syncEngineData.whatsappStatus === 'CONNECTED'
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : 'bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse'
+                }`}>
+                  {syncEngineData.whatsappStatus === 'CONNECTED' ? '✅ ئۇلاندى' : '📷 QR كود كۈتۈلمەكتە'}
+                </span>
+              </div>
+              
+              {syncEngineData.latestQrDataUrl ? (
+                <div className="flex flex-col items-center gap-2 p-3 bg-white rounded-2xl shadow-lg">
+                  <img src={syncEngineData.latestQrDataUrl} alt="WhatsApp QR Code" className="w-36 h-36 object-contain" />
+                  <p className="text-[11px] text-slate-900 font-black text-center">📱 تېلېفوندىن سىكاننېرلاڭ</p>
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  {syncEngineData.whatsappStatus === 'CONNECTED' 
+                    ? `✅ WhatsApp تولۇق ئۇلاندى! (${syncEngineData.groups?.length || 50} گۇرۇپپا)` 
+                    : 'QR كود ھازىرلىنىۋاتىدۇ...'}
+                </p>
+              )}
+
+              {/* Target Group Dropdown */}
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] text-slate-400 font-bold">🎯 نىشانلىق WhatsApp گۇرۇپپىسى:</label>
+                  <button 
+                    type="button"
+                    onClick={handleRefreshWhatsAppGroups} 
+                    disabled={isRefreshingGroups}
+                    className="text-[10px] text-sky-400 hover:underline cursor-pointer flex items-center gap-1"
+                  >
+                    <RefreshCw className={`w-2.5 h-2.5 ${isRefreshingGroups ? 'animate-spin' : ''}`} />
+                    <span>{isRefreshingGroups ? 'يېڭىلىنىۋاتىدۇ...' : '🔄 يېڭىلاش'}</span>
+                  </button>
+                </div>
+                <select 
+                  value={syncEngineData.selectedGroup?.id || ''} 
+                  onChange={(e) => handleSelectWhatsAppGroup(e.target.value)} 
+                  className="w-full px-2.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-emerald-400 font-semibold focus:outline-none focus:border-emerald-500"
                 >
-                  <RefreshCw className={`w-3 h-3 ${isRefreshingGroups ? 'animate-spin' : ''}`} />
-                  <span>{isRefreshingGroups ? 'تەكشۈرۈۋاتىدۇ...' : '🔄 گۇرۇپپىلارنى يېڭىلاش'}</span>
-                </button>
+                  {syncEngineData.groups && syncEngineData.groups.length > 0 ? (
+                    syncEngineData.groups.map(g => (
+                      <option key={g.id} value={g.id}>{g.subject}</option>
+                    ))
+                  ) : (
+                    <option value="">گۇرۇپپىلار يۈكلىنىۋاتىدۇ (50 گۇرۇپپا)...</option>
+                  )}
+                </select>
               </div>
 
-              <select
-                value={syncEngineData.selectedGroup?.id || ''}
-                onChange={(e) => handleSelectWhatsAppGroup(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border text-xs font-bold focus:outline-none focus:border-emerald-500"
-                style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border, color: themeColors.textPrimary }}
-              >
-                {syncEngineData.groups && syncEngineData.groups.length > 0 ? (
-                  syncEngineData.groups.map(g => (
-                    <option key={g.id} value={g.id}>
-                      💬 {g.subject}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">گۇرۇپپىلار يۈكلىنىۋاتىدۇ (50 گۇرۇپپا)...</option>
-                )}
-              </select>
-
               {groupSuccessMsg && (
-                <p className="text-xs font-bold text-emerald-500 pt-1 animate-in fade-in">
+                <p className="text-xs font-bold text-emerald-400 pt-1 animate-in fade-in">
                   {groupSuccessMsg}
                 </p>
               )}
@@ -842,50 +840,29 @@ export const AdminScreen = () => {
 
           </div>
 
-          {/* Live Telegram Synced Products History Log */}
-          <div 
-            className="p-5 rounded-3xl border shadow-md space-y-3"
-            style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
-          >
-            <div className="flex items-center justify-between border-b pb-2.5" style={{ borderColor: themeColors.border }}>
-              <h4 className="text-xs font-bold flex items-center gap-2">
-                <span>📋</span> تېلېگرامدىن ماس قەدەملەنگەن ئەڭ يېڭى مەھسۇلاتلار خاتىرىسى ({syncEngineData.logs?.length || 0})
-              </h4>
-              <button 
-                onClick={fetchSyncEngineStatus}
-                className="text-[11px] text-sky-500 hover:underline flex items-center gap-1 font-semibold"
-              >
-                <RefreshCw className="w-3 h-3" /> يېڭىلاش
-              </button>
-            </div>
+          {/* Live Sync Logs */}
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 space-y-4">
+            <h2 className="text-sm font-bold flex items-center gap-2 text-slate-300">
+              <span>📋</span> ئەڭ يېڭى ماس قەدەملەنگەن مەھسۇلاتلار خاتىرىسى ({syncEngineData.logs?.length || 0})
+            </h2>
 
-            {(!syncEngineData.logs || syncEngineData.logs.length === 0) ? (
-              <div className="py-8 text-center space-y-2">
-                <p className="text-xs opacity-60">تېخى تېلېگرامدىن مەھسۇلات يوللانمىدى.</p>
-                <p className="text-[11px] text-sky-500 font-bold">
-                  💡 تېلېگرام قانال ياكى گۇرۇپپىڭىزغا بىر دانە رەسىم بىلەن باھاسىنى تاشلاپ سىناپ بېقىڭ!
-                </p>
-              </div>
+            {!syncEngineData.logs || syncEngineData.logs.length === 0 ? (
+              <p className="text-xs text-slate-500 py-4 text-center">تېخى مەھسۇلات يوللانمىدى. تېلېگرام بوتىڭىزغا مەھسۇلات رەسىمى ۋە باھاسىنى تاشلاپ سىناپ بېقىڭ!</p>
             ) : (
               <div className="space-y-2">
-                {syncEngineData.logs.map((log, idx) => (
-                  <div 
-                    key={idx}
-                    className="p-3 rounded-2xl border flex flex-wrap items-center justify-between gap-2 text-xs"
-                    style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
-                  >
+                {syncEngineData.logs.map((l, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800/80 text-xs">
                     <div className="flex items-center gap-3">
-                      <span className="text-[10px] opacity-60 font-mono">{log.time}</span>
-                      <span className="font-bold">{log.name}</span>
-                      <span className="font-black text-emerald-500">¥{log.price}</span>
+                      <span className="text-slate-500 text-[10px]">{l.time}</span>
+                      <span className="font-bold text-slate-200">{l.name}</span>
+                      <span className="text-emerald-400 font-bold">¥{l.price}</span>
                     </div>
-
-                    <div className="flex items-center gap-2 text-[11px]">
-                      <span className={`px-2 py-0.5 rounded-md font-bold ${log.supabaseSuccess ? 'bg-emerald-500/15 text-emerald-500' : 'bg-rose-500/15 text-rose-500'}`}>
-                        ☁️ Supabase {log.supabaseSuccess ? 'OK' : 'FAIL'}
+                    <div className="flex items-center gap-2 text-[10px]">
+                      <span className={l.supabaseSuccess ? 'text-emerald-400' : 'text-rose-400'}>
+                        ☁️ Supabase {l.supabaseSuccess ? 'OK' : 'FAIL'}
                       </span>
-                      <span className={`px-2 py-0.5 rounded-md font-bold ${log.whatsappSuccess ? 'bg-emerald-500/15 text-emerald-500' : 'bg-amber-500/15 text-amber-500'}`}>
-                        💬 «{log.whatsappGroup || 'WhatsApp'}»
+                      <span className={l.whatsappSuccess ? 'text-emerald-400' : 'text-amber-400'}>
+                        💬 «{l.whatsappGroup || 'WhatsApp'}»
                       </span>
                     </div>
                   </div>
@@ -895,21 +872,13 @@ export const AdminScreen = () => {
           </div>
 
           {/* Quick Guide */}
-          <div 
-            className="p-4 rounded-2xl border text-xs leading-relaxed space-y-1.5"
-            style={{ backgroundColor: 'rgba(16, 185, 129, 0.08)', borderColor: 'rgba(16, 185, 129, 0.25)', color: themeColors.textPrimary }}
-          >
-            <h5 className="font-bold text-emerald-500 flex items-center gap-1.5">
+          <div className="p-4 rounded-2xl border border-slate-800 bg-slate-900/60 text-xs leading-relaxed space-y-1.5 text-slate-300">
+            <h5 className="font-bold text-emerald-400 flex items-center gap-1.5">
               <span>💡</span> تېلېگرامدىن قانداق يوللايسىز؟
             </h5>
-            <p className="opacity-90">
-              تېلېگرام قانال ياكى گۇرۇپپىڭىزغا رەسىم بىلەن بىللە تۆۋەندىكىدەك يېزىپلا يوللايسىز:
+            <p className="text-slate-400">
+              تېلېگرامدا @NoorStore520_Bot بوتقا ياكى @NoorStore2 قانىلىغا بىرەر مەھسۇلاتنىڭ رەسىمى ۋە باھاسىنى يوللىسىڭىز، سىستېما ئۇنى دەرھال ئۆزى ئايرىپ، ھەم تور بېكەتكە، ھەم ئاندىروئىد دېتالىغا، ھەم WhatsApp خېرىدارلار گۇرۇپپىسىغا ئاپتوماتىك تارقىتىپ بېرىدۇ!
             </p>
-            <div className="p-2.5 rounded-xl bg-black/10 dark:bg-white/10 font-mono text-[11px]">
-              iPhone 16 Pro Max (512GB)<br />
-              باھاسى: 8999 يۈەن<br />
-              رەڭگى قارا، ئەڭ يېڭى ئورۇنلاشتۇرۇلغان، كاپالەتلىك.
-            </div>
           </div>
 
         </div>
