@@ -83,17 +83,17 @@ export const ContactScreen = () => {
 
           <button
             onClick={handleWhatsApp}
-            className="p-3 rounded-2xl border flex items-center justify-center gap-2 font-bold text-xs shadow-xs hover:scale-102 transition-all bg-green-500 text-white"
+            className="p-3 rounded-2xl border flex items-center justify-center gap-2 font-bold text-xs shadow-xs hover:scale-102 transition-all bg-emerald-600 text-white"
           >
-            <MessageCircle className="w-4 h-4" />
+            <img src={getAssetUrl('/icons/whatsapp_3d.jpg')} className="w-5 h-5 rounded-md object-contain" alt="WhatsApp" />
             <span>{t('chat_whatsapp')}</span>
           </button>
 
           <button
             onClick={handleTelegram}
-            className="p-3 rounded-2xl border flex items-center justify-center gap-2 font-bold text-xs shadow-xs hover:scale-102 transition-all bg-sky-500 text-white"
+            className="p-3 rounded-2xl border flex items-center justify-center gap-2 font-bold text-xs shadow-xs hover:scale-102 transition-all bg-sky-600 text-white"
           >
-            <Send className="w-4 h-4" />
+            <img src={getAssetUrl('/icons/telegram_3d.png')} className="w-5 h-5 rounded-md object-contain" alt="Telegram" />
             <span>{t('chat_telegram')} (@sensiz09985)</span>
           </button>
 
