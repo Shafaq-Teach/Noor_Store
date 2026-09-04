@@ -470,14 +470,46 @@ export const StoreProvider = ({ children }) => {
       }
     }, 3000);
 
+    // Periodic background sync for products every 4 seconds to ensure instant update even if WebSocket misses
+    const productsPollInterval = setInterval(async () => {
+      if (!isMounted) return;
+      try {
+        const pRes = await fetchProductsFromSupabase();
+        if (pRes && pRes.data && pRes.data.length > 0) {
+          setProducts(prev => {
+            const remoteMap = new Map();
+            pRes.data.forEach(p => remoteMap.set(String(p.id), p));
+            const merged = [...pRes.data];
+            prev.forEach(p => {
+              if (!remoteMap.has(String(p.id))) {
+                merged.push(p);
+              }
+            });
+            const prevIds = prev.map(p => p.id).join(',');
+            const newIds = merged.map(p => p.id).join(',');
+            if (prevIds === newIds && prev.length === merged.length) {
+              return prev;
+            }
+            localStorage.setItem('noor_products', JSON.stringify(merged));
+            return merged;
+          });
+          setIsCloudConnected(true);
+        }
+      } catch (e) {
+        // silent
+      }
+    }, 4000);
+
     return () => {
       isMounted = false;
       clearInterval(cartPollInterval);
+      clearInterval(productsPollInterval);
+      clearInterval(pinPollInterval);
       supabase.removeChannel(productsChannel);
       supabase.removeChannel(reviewsChannel);
       supabase.removeChannel(ordersChannel);
     };
-  }, [products]);
+  }, []);
 
   // Persistence Effects
   useEffect(() => {
