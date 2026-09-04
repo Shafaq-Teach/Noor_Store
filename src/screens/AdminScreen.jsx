@@ -1550,14 +1550,6 @@ export const AdminScreen = () => {
                 >
                   🌐 تور دۇكىنى
                 </a>
-                <a 
-                  href="http://localhost:3000" 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-bold transition-all shadow-md text-white flex items-center gap-1.5"
-                >
-                  🖥️ سىستېما كۆزنىكىنى ئايرىم ئېچىش
-                </a>
                 <button 
                   onClick={() => setShowSyncSystemWindowModal(false)}
                   className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
