@@ -777,7 +777,7 @@ export const AdminScreen = () => {
             {/* Telegram Status Card */}
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold flex items-center gap-2">
+                <span className="text-sm font-bold flex items-center gap-2 text-slate-200">
                   <span>✈️</span> Telegram Bot
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
@@ -785,14 +785,28 @@ export const AdminScreen = () => {
                 </span>
               </div>
               <p className="text-xs text-slate-300 font-bold">بوت: @NoorStore520_Bot</p>
-              <p className="text-[11px] text-slate-400">قانىتىش قانىلى: @NoorStore2</p>
-              <p className="text-[10px] text-slate-500">Admin ID: 7251543464</p>
+              <p className="text-[11px] text-slate-400">قانىتىش قانىلى: @NoorStore2 (Admin ID: 7251543464)</p>
+              <div className="space-y-2 pt-1">
+                <input 
+                  type="text" 
+                  readOnly
+                  value="8741726555:AAFrsGEsYrDYDIzWjMZd4aQxMrz_paL3Sog" 
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 font-mono focus:outline-none"
+                />
+                <button 
+                  type="button"
+                  onClick={fetchSyncEngineStatus}
+                  className="w-full py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-md transition-colors"
+                >
+                  ساقلاش ۋە ئۇلاش
+                </button>
+              </div>
             </div>
 
             {/* Supabase Status Card */}
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold flex items-center gap-2">
+                <span className="text-sm font-bold flex items-center gap-2 text-slate-200">
                   <span>☁️</span> Supabase Cloud
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
@@ -802,13 +816,12 @@ export const AdminScreen = () => {
               <p className="text-xs text-slate-400 leading-relaxed">
                 تور بېكەت ۋە ئاندىروئىد دېتالى بىلەن دەل ۋاقتىدا ئۇلانغان.
               </p>
-              <p className="text-[10px] text-emerald-400 font-bold">ھەرقانداق ئۈسكۈنىدە ھەرزامان ئوچۇق</p>
             </div>
 
             {/* WhatsApp Status Card */}
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold flex items-center gap-2">
+                <span className="text-sm font-bold flex items-center gap-2 text-slate-200">
                   <span>💬</span> WhatsApp
                 </span>
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
@@ -819,18 +832,18 @@ export const AdminScreen = () => {
                   {syncEngineData.whatsappStatus === 'CONNECTED' ? '✅ ئۇلاندى' : '📷 QR كود كۈتۈلمەكتە'}
                 </span>
               </div>
-              
-              {syncEngineData.latestQrDataUrl ? (
+
+              {syncEngineData.selectedGroup && (
+                <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold text-center">
+                  🎯 نىشان گۇرۇپپا: {syncEngineData.selectedGroup.subject || 'شركة طيف سرمدا'}
+                </div>
+              )}
+
+              {syncEngineData.latestQrDataUrl && syncEngineData.whatsappStatus !== 'CONNECTED' && (
                 <div className="flex flex-col items-center gap-2 p-3 bg-white rounded-2xl shadow-lg">
                   <img src={syncEngineData.latestQrDataUrl} alt="WhatsApp QR Code" className="w-36 h-36 object-contain" />
                   <p className="text-[11px] text-slate-900 font-black text-center">📱 تېلېفوندىن سىكاننېرلاڭ</p>
                 </div>
-              ) : (
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  {syncEngineData.whatsappStatus === 'CONNECTED' 
-                    ? `✅ WhatsApp تولۇق ئۇلاندى! (${syncEngineData.groups?.length || 50} گۇرۇپپا)` 
-                    : 'QR كود ھازىرلىنىۋاتىدۇ...'}
-                </p>
               )}
 
               {/* Target Group Dropdown */}
@@ -857,7 +870,7 @@ export const AdminScreen = () => {
                       <option key={g.id} value={g.id}>{g.subject}</option>
                     ))
                   ) : (
-                    <option value="">گۇرۇپپىلار يۈكلىنىۋاتىدۇ (50 گۇرۇپپا)...</option>
+                    <option value="">شركة طيف سرمدا</option>
                   )}
                 </select>
               </div>
@@ -1551,7 +1564,7 @@ export const AdminScreen = () => {
               {/* Telegram Status */}
               <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold flex items-center gap-2">
+                  <span className="text-sm font-bold flex items-center gap-2 text-slate-200">
                     <span>✈️</span> Telegram Bot
                   </span>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
@@ -1559,14 +1572,28 @@ export const AdminScreen = () => {
                   </span>
                 </div>
                 <p className="text-xs text-slate-300 font-bold">بوت: @NoorStore520_Bot</p>
-                <p className="text-[11px] text-slate-400">قانىتىش قانىلى: @NoorStore2</p>
-                <p className="text-[10px] text-slate-500">Admin ID: 7251543464</p>
+                <p className="text-[11px] text-slate-400">قانىتىش قانىلى: @NoorStore2 (Admin ID: 7251543464)</p>
+                <div className="space-y-2 pt-1">
+                  <input 
+                    type="text" 
+                    readOnly
+                    value="8741726555:AAFrsGEsYrDYDIzWjMZd4aQxMrz_paL3Sog" 
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 font-mono focus:outline-none"
+                  />
+                  <button 
+                    type="button"
+                    onClick={fetchSyncEngineStatus}
+                    className="w-full py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-md transition-colors"
+                  >
+                    ساقلاش ۋە ئۇلاش
+                  </button>
+                </div>
               </div>
 
               {/* Supabase Status */}
               <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold flex items-center gap-2">
+                  <span className="text-sm font-bold flex items-center gap-2 text-slate-200">
                     <span>☁️</span> Supabase Cloud
                   </span>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
@@ -1576,13 +1603,12 @@ export const AdminScreen = () => {
                 <p className="text-xs text-slate-400 leading-relaxed">
                   تور بېكەت ۋە ئاندىروئىد دېتالى بىلەن دەل ۋاقتىدا ئۇلانغان.
                 </p>
-                <p className="text-[10px] text-emerald-400 font-bold">ھەرقانداق ئۈسكۈنىدە ھەرزامان ئوچۇق</p>
               </div>
 
               {/* WhatsApp Status */}
               <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold flex items-center gap-2">
+                  <span className="text-sm font-bold flex items-center gap-2 text-slate-200">
                     <span>💬</span> WhatsApp
                   </span>
                   <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
@@ -1593,18 +1619,18 @@ export const AdminScreen = () => {
                     {syncEngineData.whatsappStatus === 'CONNECTED' ? '✅ ئۇلاندى' : '📷 QR كود كۈتۈلمەكتە'}
                   </span>
                 </div>
+
+                {syncEngineData.selectedGroup && (
+                  <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold text-center">
+                    🎯 نىشان گۇرۇپپا: {syncEngineData.selectedGroup.subject || 'شركة طيف سرمدا'}
+                  </div>
+                )}
                 
-                {syncEngineData.latestQrDataUrl ? (
+                {syncEngineData.latestQrDataUrl && syncEngineData.whatsappStatus !== 'CONNECTED' && (
                   <div className="flex flex-col items-center gap-2 p-3 bg-white rounded-2xl shadow-lg">
                     <img src={syncEngineData.latestQrDataUrl} alt="WhatsApp QR Code" className="w-36 h-36 object-contain" />
                     <p className="text-[11px] text-slate-900 font-black text-center">📱 تېلېفوندىن سىكاننېرلاڭ</p>
                   </div>
-                ) : (
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    {syncEngineData.whatsappStatus === 'CONNECTED' 
-                      ? `✅ WhatsApp تولۇق ئۇلاندى! (${syncEngineData.groups?.length || 50} گۇرۇپپا)` 
-                      : 'QR كود ھازىرلىنىۋاتىدۇ...'}
-                  </p>
                 )}
 
                 {/* Target Group Dropdown */}
@@ -1615,9 +1641,10 @@ export const AdminScreen = () => {
                       type="button"
                       onClick={handleRefreshWhatsAppGroups} 
                       disabled={isRefreshingGroups}
-                      className="text-[10px] text-sky-400 hover:underline cursor-pointer"
+                      className="text-[10px] text-sky-400 hover:underline cursor-pointer flex items-center gap-1"
                     >
-                      {isRefreshingGroups ? 'يېڭىلىنىۋاتىدۇ...' : '🔄 يېڭىلاش'}
+                      <RefreshCw className={`w-2.5 h-2.5 ${isRefreshingGroups ? 'animate-spin' : ''}`} />
+                      <span>{isRefreshingGroups ? 'يېڭىلىنىۋاتىدۇ...' : '🔄 يېڭىلاش'}</span>
                     </button>
                   </div>
                   <select 
@@ -1630,7 +1657,7 @@ export const AdminScreen = () => {
                         <option key={g.id} value={g.id}>{g.subject}</option>
                       ))
                     ) : (
-                      <option value="">گۇرۇپپا تېپىلمىدى</option>
+                      <option value="">شركة طيف سرمدا</option>
                     )}
                   </select>
                 </div>
