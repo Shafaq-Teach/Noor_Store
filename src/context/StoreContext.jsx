@@ -26,6 +26,25 @@ import {
 } from '../utils/supabaseClient';
 import confetti from 'canvas-confetti';
 
+const safeSetLocalStorage = (key, value) => {
+  try {
+    const str = typeof value === 'string' ? value : JSON.stringify(value);
+    localStorage.setItem(key, str);
+  } catch (err) {
+    console.warn(`[Storage Quota Protected] Failed to save ${key}:`, err?.message);
+  }
+};
+
+const safeGetLocalStorage = (key, fallback) => {
+  try {
+    const saved = localStorage.getItem(key);
+    if (!saved) return fallback;
+    return typeof fallback === 'string' ? saved : JSON.parse(saved);
+  } catch {
+    return fallback;
+  }
+};
+
 const StoreContext = createContext(null);
 
 export const StoreProvider = ({ children }) => {
@@ -37,8 +56,7 @@ export const StoreProvider = ({ children }) => {
 
   // Products & Categories
   const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem('noor_products');
-    return saved ? JSON.parse(saved) : initialProducts;
+    return safeGetLocalStorage('noor_products', initialProducts);
   });
   const productsRef = useRef(products);
   productsRef.current = products;
@@ -52,13 +70,11 @@ export const StoreProvider = ({ children }) => {
 
   // Shopping Cart & Coupons
   const [cartMap, setCartMap] = useState(() => {
-    const saved = localStorage.getItem('noor_cart');
-    return saved ? JSON.parse(saved) : {};
+    return safeGetLocalStorage('noor_cart', {});
   });
 
   const [coupons, setCoupons] = useState(() => {
-    const saved = localStorage.getItem('noor_coupons');
-    return saved ? JSON.parse(saved) : initialCoupons;
+    return safeGetLocalStorage('noor_coupons', initialCoupons);
   });
 
   const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -67,20 +83,18 @@ export const StoreProvider = ({ children }) => {
 
   // Comparison State (max 3)
   const [comparedProductIds, setComparedProductIds] = useState(() => {
-    const saved = localStorage.getItem('noor_compared');
-    return saved ? JSON.parse(saved) : [];
+    return safeGetLocalStorage('noor_compared', []);
   });
 
   // Reviews State
   const [reviews, setReviews] = useState(() => {
-    const saved = localStorage.getItem('noor_reviews');
-    return saved ? JSON.parse(saved) : initialReviews;
+    const r = safeGetLocalStorage('noor_reviews', initialReviews);
+    return Array.isArray(r) ? r.filter(item => item && item.userName !== '__SYNC_STATE__' && Number(item.id) < 800000) : initialReviews;
   });
 
   // Orders State
   const [orders, setOrders] = useState(() => {
-    const saved = localStorage.getItem('noor_orders');
-    return saved ? JSON.parse(saved) : [
+    return safeGetLocalStorage('noor_orders', [
       {
         id: 10245,
         customerName: "ئابدۇراخمان",
@@ -101,12 +115,12 @@ export const StoreProvider = ({ children }) => {
         status: "Completed",
         date: "2026-08-18 10:15"
       }
-    ];
+    ]);
   });
 
   // Super Admin Authentication & PIN
   const [adminPin, setAdminPin] = useState(() => {
-    return localStorage.getItem('noor_admin_pin') || '1234';
+    return safeGetLocalStorage('noor_admin_pin', '1234');
   });
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
 
@@ -310,16 +324,16 @@ export const StoreProvider = ({ children }) => {
 
     loadDataFromCloud();
 
-    // Periodic check for Global Admin PIN changes (invalidates old PIN everywhere)
+    // Periodic check for Global Admin PIN changes (safe interval)
     const pinPollInterval = setInterval(async () => {
       try {
         const p = await fetchAdminPinFromSupabase();
         if (p && isMounted) {
           setAdminPin(p);
-          localStorage.setItem('noor_admin_pin', p);
+          safeSetLocalStorage('noor_admin_pin', p);
         }
       } catch (e) {}
-    }, 4000);
+    }, 15000);
 
     // 1. Products Realtime Channel
     const productsChannel = supabase
@@ -353,13 +367,16 @@ export const StoreProvider = ({ children }) => {
         if (status === 'SUBSCRIBED') setIsCloudConnected(true);
       });
 
-    // 2. Reviews Realtime Channel
+    // 2. Reviews Realtime Channel (Filtered from internal sync state rows)
     const reviewsChannel = supabase
       .channel('public:reviews')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'reviews' },
         (payload) => {
+          if (payload.new && (payload.new.user_name === '__SYNC_STATE__' || payload.new.user_name === '__ADMIN_PIN__' || Number(payload.new.id) >= 800000)) {
+            return;
+          }
           if (payload.eventType === 'INSERT' && payload.new) {
             const newRev = mapDbRowToReview(payload.new);
             if (newRev) {
@@ -441,7 +458,7 @@ export const StoreProvider = ({ children }) => {
       )
       .subscribe();
 
-    // Active polling every 3 seconds to guarantee instant cart sync across mobile & web
+    // Active polling every 5 seconds for cart
     const cartPollInterval = setInterval(async () => {
       if (!isMounted) return;
       try {
@@ -470,12 +487,10 @@ export const StoreProvider = ({ children }) => {
             return newCartMap;
           });
         }
-      } catch (e) {
-        // silent catch
-      }
-    }, 3000);
+      } catch (e) {}
+    }, 5000);
 
-    // Periodic background sync for products every 4 seconds to ensure instant update even if WebSocket misses
+    // Periodic background sync for products every 30 seconds
     const productsPollInterval = setInterval(async () => {
       if (!isMounted) return;
       try {
@@ -495,15 +510,13 @@ export const StoreProvider = ({ children }) => {
             if (prevIds === newIds && prev.length === merged.length) {
               return prev;
             }
-            localStorage.setItem('noor_products', JSON.stringify(merged));
+            safeSetLocalStorage('noor_products', merged);
             return merged;
           });
           setIsCloudConnected(true);
         }
-      } catch (e) {
-        // silent
-      }
-    }, 4000);
+      } catch (e) {}
+    }, 30000);
 
     return () => {
       isMounted = false;
@@ -516,33 +529,33 @@ export const StoreProvider = ({ children }) => {
     };
   }, []);
 
-  // Persistence Effects
+  // Persistence Effects (Protected from QuotaExceededError)
   useEffect(() => {
-    localStorage.setItem('noor_products', JSON.stringify(products));
+    safeSetLocalStorage('noor_products', products);
   }, [products]);
 
   useEffect(() => {
-    localStorage.setItem('noor_cart', JSON.stringify(cartMap));
+    safeSetLocalStorage('noor_cart', cartMap);
   }, [cartMap]);
 
   useEffect(() => {
-    localStorage.setItem('noor_coupons', JSON.stringify(coupons));
+    safeSetLocalStorage('noor_coupons', coupons);
   }, [coupons]);
 
   useEffect(() => {
-    localStorage.setItem('noor_compared', JSON.stringify(comparedProductIds));
+    safeSetLocalStorage('noor_compared', comparedProductIds);
   }, [comparedProductIds]);
 
   useEffect(() => {
-    localStorage.setItem('noor_reviews', JSON.stringify(reviews));
+    safeSetLocalStorage('noor_reviews', reviews);
   }, [reviews]);
 
   useEffect(() => {
-    localStorage.setItem('noor_orders', JSON.stringify(orders));
+    safeSetLocalStorage('noor_orders', orders);
   }, [orders]);
 
   useEffect(() => {
-    localStorage.setItem('noor_admin_pin', adminPin);
+    safeSetLocalStorage('noor_admin_pin', adminPin);
   }, [adminPin]);
 
   // Cart Calculations

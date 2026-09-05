@@ -174,6 +174,10 @@ export const deleteProductFromSupabase = async (productId) => {
 
 export const mapDbRowToReview = (row) => {
   if (!row) return null;
+  // Exclude system internal state rows (e.g. SyncEngine status or Admin PIN)
+  if (row.user_name === '__SYNC_STATE__' || row.user_name === '__ADMIN_PIN__' || Number(row.id) >= 800000) {
+    return null;
+  }
   return {
     id: row.id,
     productId: row.product_id,
@@ -188,7 +192,11 @@ export const mapDbRowToReview = (row) => {
 
 export const fetchReviewsFromSupabase = async () => {
   try {
-    const { data, error } = await supabase.from('reviews').select('*').order('id', { ascending: false });
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .lt('id', 800000)
+      .order('id', { ascending: false });
     if (error) {
       console.error('Supabase fetch reviews error:', error);
       return { success: false, error: error.message, data: [] };
