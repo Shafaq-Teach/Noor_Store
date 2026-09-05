@@ -171,7 +171,7 @@ export const CartScreen = () => {
                   {/* Price & Quantity Controls */}
                   <div className="flex items-center justify-between mt-2 pt-1">
                     <span className="text-sm sm:text-base font-black" style={{ color: currentTheme.primary }}>
-                      ¥{(p.price * item.quantity).toFixed(2)}
+                      ${(p.price * item.quantity).toFixed(2)}
                     </span>
 
                     {/* Stepper */}
@@ -289,19 +289,19 @@ export const CartScreen = () => {
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between">
                 <span className="opacity-70">{t('subtotal')}:</span>
-                <span className="font-bold">¥{cartSubtotal.toFixed(2)}</span>
+                <span className="font-bold">${cartSubtotal.toFixed(2)}</span>
               </div>
 
               {discountAmount > 0 && (
                 <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
                   <span>{t('discount')} ({appliedCoupon?.code}):</span>
-                  <span>-¥{discountAmount.toFixed(2)}</span>
+                  <span>-${discountAmount.toFixed(2)}</span>
                 </div>
               )}
 
               <div className="flex justify-between text-base font-black pt-2 border-t" style={{ borderColor: themeColors.border, color: currentTheme.primary }}>
                 <span>{t('total_price')}:</span>
-                <span>¥{finalTotal.toFixed(2)}</span>
+                <span>${finalTotal.toFixed(2)}</span>
               </div>
             </div>
 

@@ -221,27 +221,54 @@ export const AdminScreen = () => {
 
   const handleSaveAiKey = async (e) => {
     if (e) e.preventDefault();
+    const key = aiKeyInput.trim();
+    if (!key) {
+      setGroupSuccessMsg('⚠️ API Key كىرگۈزۈڭ!');
+      return;
+    }
     setIsSavingAi(true);
-    // 1. Try local API
+
+    const maskedKey = key.length > 8 ? `${key.substring(0, 6)}...${key.substring(key.length - 3)}` : `${key.substring(0, 4)}...`;
+
+    // 1. Immediately update UI state
+    setSyncEngineData(prev => ({
+      ...prev,
+      geminiConfigured: true,
+      geminiKey: maskedKey
+    }));
+
+    // 2. Try local daemon API
     try {
       await fetch('http://localhost:3000/api/save-ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ geminiKey: aiKeyInput })
+        body: JSON.stringify({ geminiKey: key })
       });
     } catch (e) {}
 
-    // 2. Push command to Supabase Cloud so SyncEngine picks it up
+    // 3. Push command to Supabase Cloud & update cloud review state
     try {
-      const cmdPayload = JSON.stringify({ command: 'SET_AI_KEY', geminiKey: aiKeyInput, time: Date.now() });
+      const cmdPayload = JSON.stringify({ command: 'SET_AI_KEY', geminiKey: key, time: Date.now() });
       await supabase.from('reviews').update({ admin_reply: cmdPayload }).eq('id', 999999);
-      setGroupSuccessMsg('✅ سۈنئىي ئەقىل (AI) تەڭشىكى مۇۋەپپەقىيەتلىك ساقلاندى!');
-      setTimeout(fetchSyncEngineStatus, 1500);
+
+      // Read & update current state comment in Supabase
+      const { data: curState } = await supabase.from('reviews').select('comment').eq('id', 999999).maybeSingle();
+      let statePayload = {};
+      if (curState && curState.comment) {
+        try { statePayload = JSON.parse(curState.comment); } catch (err) {}
+      }
+      statePayload.geminiConfigured = true;
+      statePayload.geminiKey = maskedKey;
+      await supabase.from('reviews').update({ comment: JSON.stringify(statePayload) }).eq('id', 999999);
+
+      setGroupSuccessMsg('✅ سۈنئىي ئەقىل (Gemini AI) مۇۋەپپەقىيەتلىك ساقلاندى ۋە ئۇلاندى!');
+      setAiKeyInput('');
     } catch (e) {
       setGroupSuccessMsg('❌ سۈنئىي ئەقىلنى ساقلاشتا خاتالىق كۆرۈلدى');
     } finally {
       setIsSavingAi(false);
-      setTimeout(() => setGroupSuccessMsg(null), 4000);
+      setTimeout(() => setGroupSuccessMsg(null), 5000);
+      setTimeout(fetchSyncEngineStatus, 1500);
     }
   };
 
@@ -690,7 +717,7 @@ export const AdminScreen = () => {
               </div>
               <span className="text-[11px] opacity-70 block">{t('total_sales_revenue')}</span>
               <h3 className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400">
-                ¥{totalSalesRevenue.toFixed(2)}
+                ${totalSalesRevenue.toFixed(2)}
               </h3>
             </div>
 
@@ -703,7 +730,7 @@ export const AdminScreen = () => {
               </div>
               <span className="text-[11px] opacity-70 block">{t('total_inventory_value')}</span>
               <h3 className="text-lg sm:text-xl font-black text-sky-600 dark:text-sky-400">
-                ¥{totalInventoryValue.toFixed(2)}
+                ${totalInventoryValue.toFixed(2)}
               </h3>
             </div>
 
@@ -932,7 +959,7 @@ export const AdminScreen = () => {
                     <div className="flex items-center gap-3">
                       <span className="text-[10px] opacity-60">{l.time}</span>
                       <span className="font-bold">{l.name}</span>
-                      <span className="font-black text-emerald-500">¥{l.price}</span>
+                      <span className="font-black text-emerald-500">${l.price}</span>
                     </div>
                     <div className="flex items-center gap-2 text-[10px]">
                       <span className={l.supabaseSuccess ? 'text-emerald-500 font-bold' : 'text-rose-500'}>
@@ -1094,7 +1121,7 @@ export const AdminScreen = () => {
                         className="text-xs font-bold px-2 py-1 rounded-lg border hover:opacity-80"
                         style={{ backgroundColor: themeColors.surfaceVariant, color: currentTheme.primary }}
                       >
-                        ¥{prod.price} ✏️
+                        ${prod.price} ✏️
                       </button>
                     )}
 
@@ -1162,7 +1189,7 @@ export const AdminScreen = () => {
                   </span>
                   <p className="text-xs opacity-75 mt-0.5">{c.descUg}</p>
                   <span className="text-[10px] opacity-50 block mt-1">
-                    {t('min_spend_prefix')}: ¥{c.minSpend}
+                    {t('min_spend_prefix')}: ${c.minSpend}
                   </span>
                 </div>
 
@@ -1330,7 +1357,7 @@ export const AdminScreen = () => {
                 type="number"
                 value={newProdPrice}
                 onChange={(e) => setNewProdPrice(e.target.value)}
-                placeholder={t('price') + " (¥) *"}
+                placeholder={t('price') + " ($) *"}
                 className="w-full px-3 py-2 rounded-xl border"
                 style={{ backgroundColor: themeColors.surfaceVariant }}
               />
@@ -1504,7 +1531,7 @@ export const AdminScreen = () => {
                   style={{ backgroundColor: themeColors.surfaceVariant }}
                 >
                   <option value="percent">{t('percent_discount')} (%)</option>
-                  <option value="fixed">{t('fixed_discount')} (¥)</option>
+                  <option value="fixed">{t('fixed_discount')} ($)</option>
                 </select>
 
                 <input 
@@ -1661,20 +1688,27 @@ export const AdminScreen = () => {
                 <p className="text-[11px] text-slate-400 leading-relaxed">
                   تېلېگرامدىن يوللانغان مەھسۇلات ئۇچۇرلىرىنى ئاپتوماتىك تەھلىل قىلىپ تۈرگە ئايرىيدۇ.
                 </p>
+                {syncEngineData.geminiConfigured && (
+                  <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center justify-between">
+                    <span className="font-bold">🔑 قاچىلانغان Key:</span>
+                    <span className="font-mono text-[11px]">{syncEngineData.geminiKey || 'ئۇلانغان'}</span>
+                  </div>
+                )}
                 <form onSubmit={handleSaveAiKey} className="space-y-2 pt-1">
                   <input 
-                    type="password" 
+                    type="text" 
                     value={aiKeyInput} 
                     onChange={(e) => setAiKeyInput(e.target.value)}
-                    placeholder={syncEngineData.geminiConfigured ? "API Key قاچىلانغان (ئالماشتۇرۇشقا بولىدۇ)" : "Google Gemini API Key..."}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:outline-none focus:border-purple-500 text-xs text-slate-200"
+                    placeholder={syncEngineData.geminiConfigured ? "يېڭى Gemini API Key كىرگۈزۈڭ..." : "Google Gemini API Key..."}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:outline-none focus:border-purple-500 text-xs text-slate-200 font-mono"
+                    dir="ltr"
                   />
                   <button 
                     type="submit" 
                     disabled={isSavingAi}
                     className="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md transition-colors cursor-pointer disabled:opacity-50"
                   >
-                    {isSavingAi ? 'ساقلىنىۋاتىدۇ...' : 'سۈنئىي ئەقىلنى تەڭشەش'}
+                    {isSavingAi ? 'ساقلىنىۋاتىدۇ...' : (syncEngineData.geminiConfigured ? '🔄 API Key نى ئالماشتۇرۇش' : 'سۈنئىي ئەقىلنى ئۇلاش ۋە ساقلاش')}
                   </button>
                 </form>
               </div>
@@ -1763,7 +1797,7 @@ export const AdminScreen = () => {
                       <div className="flex items-center gap-3">
                         <span className="text-slate-500 text-[10px]">{l.time}</span>
                         <span className="font-bold text-slate-200">{l.name}</span>
-                        <span className="text-emerald-400 font-bold">¥${l.price}</span>
+                        <span className="text-emerald-400 font-bold">${l.price}</span>
                       </div>
                       <div className="flex items-center gap-2 text-[10px]">
                         <span className={l.supabaseSuccess ? 'text-emerald-400' : 'text-rose-400'}>

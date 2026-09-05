@@ -69,12 +69,12 @@ export const ProductDetailScreen = () => {
   const productReviews = getReviewsForProduct(p.id);
 
   const handleOrderWhatsApp = () => {
-    const msg = `I want to buy: ${name} (¥${p.price})`;
+    const msg = `I want to buy: ${name} ($${p.price})`;
     window.open(`https://api.whatsapp.com/send?phone=+860995416715&text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   const handleOrderTelegram = () => {
-    const msg = `I want to buy: ${name} (¥${p.price})`;
+    const msg = `I want to buy: ${name} ($${p.price})`;
     window.open(`https://t.me/sensiz09985?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -232,11 +232,11 @@ export const ProductDetailScreen = () => {
           {/* Price Tag */}
           <div className="flex items-baseline gap-2.5 py-1 border-b" style={{ borderColor: themeColors.border }}>
             <span className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: currentTheme.primary }}>
-              ¥{p.price}
+              ${p.price}
             </span>
             {hasDiscount && (
               <span className="text-sm line-through opacity-50">
-                ¥{p.originalPrice}
+                ${p.originalPrice}
               </span>
             )}
           </div>

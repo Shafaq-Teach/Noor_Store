@@ -169,11 +169,11 @@ export const ProductCard = ({ product }) => {
               className="text-base sm:text-lg font-black tracking-tight"
               style={{ color: currentTheme.primary }}
             >
-              ¥{product.price}
+              ${product.price}
             </span>
             {hasDiscount && (
               <span className="text-[11px] line-through opacity-50">
-                ¥{product.originalPrice}
+                ${product.originalPrice}
               </span>
             )}
           </div>

@@ -115,7 +115,7 @@ export const ProductsScreen = () => {
               {t('filter_by_price')}:
             </span>
             <span className="font-black" style={{ color: currentTheme.primary }}>
-              {maxPriceFilter ? `≤ ¥${maxPriceFilter}` : t('all')}
+              {maxPriceFilter ? `≤ $${maxPriceFilter}` : t('all')}
             </span>
           </div>
 

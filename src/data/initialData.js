@@ -161,27 +161,27 @@ export const initialCoupons = [
     discountPercent: 0.0,
     discountAmount: 100.0,
     minSpend: 1000.0,
-    descUg: "1000 يۈەندىن ئاشسا 100 يۈەن كېمەيتىش",
-    descAr: "خصم 100¥ للطلبات فوق 1000¥",
-    descEn: "¥100 Off for orders over ¥1000"
+    descUg: "1000$ دىن ئاشسا 100$ كېمەيتىش",
+    descAr: "خصم 100$ للطلبات فوق 1000$",
+    descEn: "$100 Off for orders over $1000"
   },
   {
     code: "VIP2026",
     discountPercent: 0.0,
     discountAmount: 200.0,
     minSpend: 2000.0,
-    descUg: "2000 يۈەندىن ئاشسا 200 يۈەن كېمەيتىش",
-    descAr: "خصم 200¥ للطلبات فوق 2000¥",
-    descEn: "¥200 Off for orders over ¥2000"
+    descUg: "2000$ دىن ئاشسا 200$ كېمەيتىش",
+    descAr: "خصم 200$ للطلبات فوق 2000$",
+    descEn: "$200 Off for orders over $2000"
   },
   {
     code: "TEZLIK",
     discountPercent: 0.0,
     discountAmount: 50.0,
     minSpend: 500.0,
-    descUg: "500 يۈەندىن ئاشسا 50 يۈەن كېمەيتىش + تېز يەتكۈزۈش",
-    descAr: "خصم 50¥ + توصيل سريع",
-    descEn: "¥50 Off + Express Delivery"
+    descUg: "500$ دىن ئاشسا 50$ كېمەيتىش + تېز يەتكۈزۈش",
+    descAr: "خصم 50$ + توصيل سريع",
+    descEn: "$50 Off + Express Delivery"
   }
 ];
 

@@ -286,7 +286,7 @@ export const mapDbRowToOrder = (row) => {
   // Format order summary from items_json
   let summaryStr = '';
   if (Array.isArray(items) && items.length > 0) {
-    summaryStr = items.map(item => `• ${item.name || item.nameUg || 'Item'} x${item.qty || item.quantity || 1} = ¥${((item.price || 0) * (item.qty || item.quantity || 1)).toFixed(2)}`).join('\n');
+    summaryStr = items.map(item => `• ${item.name || item.nameUg || 'Item'} x${item.qty || item.quantity || 1} = $${((item.price || 0) * (item.qty || item.quantity || 1)).toFixed(2)}`).join('\n');
   }
 
   const orderDateNum = Number(row.order_date) || Date.now();

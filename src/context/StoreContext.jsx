@@ -85,8 +85,8 @@ export const StoreProvider = ({ children }) => {
         id: 10245,
         customerName: "ئابدۇراخمان",
         customerPhone: "+905521234567",
-        orderSummary: "• iPhone 16 Pro Max (512GB) x1 = ¥9999",
-        totalAmount: 8999.1,
+        orderSummary: "• iPhone 16 Pro Max (512GB) x1 = $1299",
+        totalAmount: 1299,
         note: "تېز يەتكۈزۈپ بېرىشىڭلارنى سورايمەن.",
         status: "Processing",
         date: "2026-08-19 14:30"
@@ -95,8 +95,8 @@ export const StoreProvider = ({ children }) => {
         id: 10246,
         customerName: "فاطمة الزهراء",
         customerPhone: "+905539876543",
-        orderSummary: "• iPad Pro 13-inch M4 (Cellular) x1 = ¥8999",
-        totalAmount: 8999.0,
+        orderSummary: "• iPad Pro 13-inch M4 (Cellular) x1 = $999",
+        totalAmount: 999,
         note: "يرجى التغليف كهدية",
         status: "Completed",
         date: "2026-08-18 10:15"
@@ -607,7 +607,7 @@ export const StoreProvider = ({ children }) => {
         setCouponMessage({ type: 'success', text: t('code_applied') });
         confetti({ particleCount: 60, spread: 60, origin: { y: 0.8 } });
       } else {
-        setCouponMessage({ type: 'error', text: `${t('invalid_code')} (Min: ¥${found.minSpend})` });
+        setCouponMessage({ type: 'error', text: `${t('invalid_code')} (Min: $${found.minSpend})` });
       }
     } else {
       setCouponMessage({ type: 'error', text: t('invalid_code') });
@@ -793,7 +793,7 @@ export const StoreProvider = ({ children }) => {
 
     const summaryStr = cartItems.map(item => {
       const pName = language === 'uyghur' ? item.product.nameUg : language === 'arabic' ? item.product.nameAr : item.product.nameEn;
-      return `• ${pName} x${item.quantity} = ¥${(item.product.price * item.quantity).toFixed(2)}`;
+      return `• ${pName} x${item.quantity} = $${(item.product.price * item.quantity).toFixed(2)}`;
     }).join('\n');
 
     const orderItems = cartItems.map(item => ({
@@ -854,7 +854,7 @@ export const StoreProvider = ({ children }) => {
       'Cancelled': '❌ بىكار قىلىندى (Cancelled)'
     }[newStatus] || newStatus;
 
-    const msg = `ئەسسالامۇ ئەلەيكۇم ھۆرمەتلىك ${order.customerName}!\n🛒 نۇرلۇق تېلېفونچىلىقى - ئېلېكترونلۇق زاكاز ھالىتى\n🆔 #${order.id}\n📌 زاكاز ھالىتى: ${statusText}\n💰 ئومۇمىي سومما: ¥${order.totalAmount}\n📝 ئەسكەرتىش: ${order.note || 'N/A'}\n\n📍 ${t('store_address')}\n📞 0995416715`;
+    const msg = `ئەسسالامۇ ئەلەيكۇم ھۆرمەتلىك ${order.customerName}!\n🛒 نۇرلۇق تېلېفونچىلىقى - ئېلېكترونلۇق زاكاز ھالىتى\n🆔 #${order.id}\n📌 زاكاز ھالىتى: ${statusText}\n💰 ئومۇمىي سومما: $${order.totalAmount}\n📝 ئەسكەرتىش: ${order.note || 'N/A'}\n\n📍 ${t('store_address')}\n📞 0995416715`;
     const cleanPhone = order.customerPhone.replace(/[^0-9+]/g, '');
     window.open(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(msg)}`, '_blank');
   };
@@ -874,14 +874,14 @@ export const StoreProvider = ({ children }) => {
     items.forEach((item, idx) => {
       const pName = language === 'uyghur' ? item.product.nameUg : language === 'arabic' ? item.product.nameAr : item.product.nameEn;
       text += `${idx + 1}. ${pName}\n`;
-      text += `   • Qty: ${item.quantity}  ×  ¥${item.product.price}  =  ¥${(item.product.price * item.quantity).toFixed(2)}\n`;
+      text += `   • Qty: ${item.quantity}  ×  $${item.product.price}  =  $${(item.product.price * item.quantity).toFixed(2)}\n`;
     });
     text += `─────────────────────────────\n`;
-    text += `💵 ${t('subtotal')}: ¥${subtotal.toFixed(2)}\n`;
+    text += `💵 ${t('subtotal')}: $${subtotal.toFixed(2)}\n`;
     if (discount > 0) {
-      text += `🏷️ ${t('discount')} (${couponCode || 'PROMO'}): -¥${discount.toFixed(2)}\n`;
+      text += `🏷️ ${t('discount')} (${couponCode || 'PROMO'}): -$${discount.toFixed(2)}\n`;
     }
-    text += `⭐ ${t('total_price')}: ¥${total.toFixed(2)}\n\n`;
+    text += `⭐ ${t('total_price')}: $${total.toFixed(2)}\n\n`;
     if (note && note.trim()) {
       text += `📝 ${t('order_note')}: ${note}\n\n`;
     }
@@ -903,8 +903,8 @@ export const StoreProvider = ({ children }) => {
       ` 📊 ${t('sales_report_title')}\n` +
       ` 📅 ${new Date().toLocaleDateString()}\n` +
       `════════════════════════════════\n\n` +
-      `💰 ${t('total_sales_revenue')}: ¥${totalRev.toFixed(2)}\n` +
-      `📦 ${t('total_inventory_value')}: ¥${totalInv.toFixed(2)}\n` +
+      `💰 ${t('total_sales_revenue')}: $${totalRev.toFixed(2)}\n` +
+      `📦 ${t('total_inventory_value')}: $${totalInv.toFixed(2)}\n` +
       `📋 ${t('total_orders_count')}: ${orders.length}\n` +
       `⏳ ${t('pending_orders')}: ${pending}\n` +
       `✅ ${t('completed_orders')}: ${completed}\n\n` +

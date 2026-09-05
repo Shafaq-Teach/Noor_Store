@@ -257,7 +257,7 @@ export const AIAssistantModal = () => {
                             {pSpecs}
                           </p>
                           <span className="text-xs font-black mt-1 inline-block" style={{ color: currentTheme.primary }}>
-                            ¥{product.price}
+                            ${product.price}
                           </span>
                         </div>
 

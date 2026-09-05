@@ -115,11 +115,11 @@ export const CompareScreen = () => {
                     {/* Price */}
                     <div className="flex items-baseline gap-2">
                       <span className="text-lg font-black" style={{ color: currentTheme.primary }}>
-                        ¥{product.price}
+                        ${product.price}
                       </span>
                       {product.originalPrice > product.price && (
                         <span className="text-xs line-through opacity-50">
-                          ¥{product.originalPrice}
+                          ${product.originalPrice}
                         </span>
                       )}
                     </div>
@@ -203,7 +203,7 @@ export const CompareScreen = () => {
                   <img src={prod.imageResName} alt={prodName} className="w-8 h-8 rounded-lg object-cover" />
                   <div className="min-w-0 flex-1">
                     <span className="truncate block font-bold text-[11px]">{prodName}</span>
-                    <span className="text-[10px] opacity-70" style={{ color: currentTheme.primary }}>¥{prod.price}</span>
+                    <span className="text-[10px] opacity-70" style={{ color: currentTheme.primary }}>${prod.price}</span>
                   </div>
                   <Plus className="w-3.5 h-3.5 opacity-60 flex-shrink-0" />
                 </div>
