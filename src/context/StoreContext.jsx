@@ -115,6 +115,11 @@ export const StoreProvider = ({ children }) => {
   const [aiChatMessages, setAiChatMessages] = useState([]);
   const [isAiThinking, setIsAiThinking] = useState(false);
 
+  // App Download Modal State
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const openDownloadModal = () => setIsDownloadModalOpen(true);
+  const closeDownloadModal = () => setIsDownloadModalOpen(false);
+
   // Nasheed Audio Player State
   const [nasheedTracks] = useState(initialNasheedTracks);
   const [currentTrack, setCurrentTrack] = useState(initialNasheedTracks[0]);
@@ -1091,6 +1096,9 @@ export const StoreProvider = ({ children }) => {
       isAiAdvisorOpen,
       openAiAdvisor,
       closeAiAdvisor,
+      isDownloadModalOpen,
+      openDownloadModal,
+      closeDownloadModal,
       aiChatMessages,
       isAiThinking,
       askAiAdvisor,

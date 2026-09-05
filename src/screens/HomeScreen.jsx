@@ -16,7 +16,8 @@ import {
   Headphones, 
   Watch, 
   Grid, 
-  Flame 
+  Flame,
+  Download
 } from 'lucide-react';
 
 export const HomeScreen = () => {
@@ -25,7 +26,8 @@ export const HomeScreen = () => {
     featuredProducts, 
     categories, 
     setSelectedCategoryId, 
-    setCurrentScreen 
+    setCurrentScreen,
+    openDownloadModal
   } = useStore();
 
   const handleCategorySelect = (catId) => {
@@ -135,6 +137,46 @@ export const HomeScreen = () => {
 
       {/* Nasheed Audio Player Integration */}
       <NasheedPlayer />
+
+      {/* App Download Promo Card */}
+      <div 
+        className="rounded-3xl p-4 sm:p-5 border shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 overflow-hidden relative"
+        style={{
+          backgroundColor: themeColors.surface,
+          borderColor: themeColors.border
+        }}
+      >
+        <div className="flex items-center gap-3.5 z-10">
+          <div 
+            className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-white shadow-lg flex-shrink-0"
+            style={{ background: `linear-gradient(135deg, ${currentTheme.primary}, ${currentTheme.secondary})` }}
+          >
+            <Smartphone className="w-6 h-6 sm:w-7 sm:h-7" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm sm:text-base font-black" style={{ color: themeColors.textPrimary }}>
+                📱 Noor Store ئەپ دېتالىنى چۈشۈرۈۋېلىڭ
+              </h3>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold border border-emerald-500/30">
+                APK v1.0.32
+              </span>
+            </div>
+            <p className="text-xs mt-0.5" style={{ color: themeColors.textSecondary }}>
+              ئەپنى يانفونىڭىزغا قاچىلاپ، يېڭى ئېتىبار كۇپونلىرى ۋە چاقماق تېزلىكتىكى زاكازغا ئېرىشىڭ.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={openDownloadModal}
+          className="w-full sm:w-auto px-5 py-2.5 rounded-2xl text-white font-extrabold text-xs sm:text-sm shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 flex-shrink-0 z-10"
+          style={{ background: `linear-gradient(135deg, ${currentTheme.primary}, ${currentTheme.secondary})` }}
+        >
+          <Download className="w-4 h-4 animate-bounce" />
+          <span>ئەپنى چۈشۈرۈش (APK)</span>
+        </button>
+      </div>
 
       {/* Categories Horizontal Grid */}
       <div>

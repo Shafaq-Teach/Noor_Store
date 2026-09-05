@@ -17,7 +17,7 @@ import {
 
 export const HeaderBar = () => {
   const { currentTheme, cycleTheme, isDarkMode, toggleDarkMode, language, setLanguage, viewMode, toggleViewMode, themeColors, t } = useTheme();
-  const { cartCount, setCurrentScreen, openAiAdvisor } = useStore();
+  const { cartCount, setCurrentScreen, openAiAdvisor, openDownloadModal } = useStore();
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
 
   const handleMapClick = () => {
@@ -65,6 +65,21 @@ export const HeaderBar = () => {
 
         {/* Action Controls */}
         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+
+          {/* Download App Button */}
+          <button
+            onClick={openDownloadModal}
+            className="p-1.5 sm:px-2.5 py-1.5 rounded-full border shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 font-bold text-xs"
+            style={{
+              backgroundColor: currentTheme.primary,
+              borderColor: currentTheme.primary,
+              color: '#FFFFFF'
+            }}
+            title="Noor Store ئەپ دېتالىنى چۈشۈرۈش"
+          >
+            <Smartphone className="w-4 h-4" />
+            <span className="hidden sm:inline">ئەپنى چۈشۈرۈش</span>
+          </button>
 
           {/* Map Location */}
           <button

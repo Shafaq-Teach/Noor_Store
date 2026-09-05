@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTheme } from '../context/ThemeContext';
+import { useStore } from '../context/StoreContext';
 import { getAssetUrl } from '../utils/assetHelper';
 import { 
   PhoneCall, 
@@ -9,11 +10,14 @@ import {
   Clock, 
   ShieldCheck, 
   Building2,
-  ExternalLink
+  ExternalLink,
+  Smartphone,
+  Download
 } from 'lucide-react';
 
 export const ContactScreen = () => {
   const { currentTheme, themeColors, t } = useTheme();
+  const { openDownloadModal } = useStore();
 
   const handleCall = () => window.open("tel:0995416715");
   const handleTelegram = () => window.open("https://t.me/sensiz09985", "_blank");
@@ -103,6 +107,33 @@ export const ContactScreen = () => {
           >
             <MapPin className="w-4 h-4" />
             <span>Google Maps ئارقىلىق كۆرۈش</span>
+          </button>
+        </div>
+
+        {/* App Download Callout */}
+        <div 
+          onClick={openDownloadModal}
+          className="p-4 rounded-2xl border flex items-center justify-between gap-3 cursor-pointer hover:scale-101 active:scale-99 transition-all"
+          style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+        >
+          <div className="flex items-center gap-3">
+            <div 
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md"
+              style={{ background: `linear-gradient(135deg, ${currentTheme.primary}, ${currentTheme.secondary})` }}
+            >
+              <Smartphone className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-bold text-xs">📱 Noor Store رەسمىي يانفون ئەپ دېتالى</h4>
+              <p className="text-[10px] opacity-75">Android APK نى بىۋاسىتە تېلېفونىڭىزغا قاچىلاڭ</p>
+            </div>
+          </div>
+          <button 
+            className="px-3 py-1.5 rounded-xl text-white font-bold text-xs flex items-center gap-1 shadow-sm"
+            style={{ backgroundColor: currentTheme.primary }}
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>چۈشۈرۈش</span>
           </button>
         </div>
       </div>

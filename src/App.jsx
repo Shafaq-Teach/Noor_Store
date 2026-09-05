@@ -4,6 +4,7 @@ import { StoreProvider, useStore } from './context/StoreContext';
 import { HeaderBar } from './components/HeaderBar';
 import { BottomNavBar } from './components/BottomNavBar';
 import { AIAssistantModal } from './components/AIAssistantModal';
+import { AppDownloadModal } from './components/AppDownloadModal';
 
 import { HomeScreen } from './screens/HomeScreen';
 import { ProductsScreen } from './screens/ProductsScreen';
@@ -49,6 +50,7 @@ const MainLayout = () => {
 
         <BottomNavBar />
         <AIAssistantModal />
+        <AppDownloadModal />
       </div>
     </div>
   );
