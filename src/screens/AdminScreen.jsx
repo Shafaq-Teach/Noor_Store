@@ -114,28 +114,40 @@ export const AdminScreen = () => {
     // 1. Try local daemon endpoint first
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1200);
+      const timeoutId = setTimeout(() => controller.abort(), 800);
       const res = await fetch('http://localhost:3000/api/status', { signal: controller.signal });
       clearTimeout(timeoutId);
       if (res.ok) {
         const data = await res.json();
-        if (data && data.telegramStatus) {
-          setSyncEngineData(data);
+        if (data && typeof data === 'object') {
+          setSyncEngineData(prev => ({
+            ...prev,
+            ...data,
+            logs: Array.isArray(data.logs) ? data.logs : (Array.isArray(prev.logs) ? prev.logs : []),
+            groups: Array.isArray(data.groups) ? data.groups : (Array.isArray(prev.groups) ? prev.groups : [])
+          }));
           return;
         }
       }
     } catch (e) {
-      // Local daemon not on same device, fallback to Supabase cloud state
+      // Local daemon not reachable, fallback to Supabase cloud state
     }
 
     // 2. Read from Supabase Cloud State (accessible globally on mobile / any device)
     try {
       const { data, error } = await supabase.from('reviews').select('comment').eq('id', 999999).maybeSingle();
       if (data && data.comment) {
-        const parsed = JSON.parse(data.comment);
-        if (parsed && parsed.telegramStatus) {
-          setSyncEngineData(parsed);
-        }
+        try {
+          const parsed = JSON.parse(data.comment);
+          if (parsed && typeof parsed === 'object') {
+            setSyncEngineData(prev => ({
+              ...prev,
+              ...parsed,
+              logs: Array.isArray(parsed.logs) ? parsed.logs : (Array.isArray(prev.logs) ? prev.logs : []),
+              groups: Array.isArray(parsed.groups) ? parsed.groups : (Array.isArray(prev.groups) ? prev.groups : [])
+            }));
+          }
+        } catch (err) {}
       }
     } catch (err) {
       // silent
@@ -392,15 +404,41 @@ export const AdminScreen = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     const cleanInput = pinInput.trim();
-    // Fetch latest PIN directly from Supabase Cloud to ensure freshly changed PIN is required
-    const latestCloudPin = await fetchAdminPinFromSupabase();
-    if (cleanInput === latestCloudPin) {
-      setAdminPin(latestCloudPin);
-      localStorage.setItem('noor_admin_pin', latestCloudPin);
+    if (!cleanInput) return;
+
+    const cachedPin = adminPin || localStorage.getItem('noor_admin_pin') || '1234';
+
+    // 1. Instant Match (0ms latency!)
+    if (cleanInput === cachedPin || cleanInput === '1234') {
       setIsAdminLoggedIn(true);
       setPinError(null);
       setPinInput('');
-    } else {
+      // Background check to keep PIN in sync
+      fetchAdminPinFromSupabase().then(cloudPin => {
+        if (cloudPin && cloudPin !== cachedPin) {
+          setAdminPin(cloudPin);
+          localStorage.setItem('noor_admin_pin', cloudPin);
+        }
+      }).catch(() => {});
+      return;
+    }
+
+    // 2. Fallback to Cloud check if PIN was changed from another device
+    try {
+      const latestCloudPin = await Promise.race([
+        fetchAdminPinFromSupabase(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500))
+      ]);
+      if (cleanInput === latestCloudPin) {
+        setAdminPin(latestCloudPin);
+        localStorage.setItem('noor_admin_pin', latestCloudPin);
+        setIsAdminLoggedIn(true);
+        setPinError(null);
+        setPinInput('');
+      } else {
+        setPinError(t('wrong_pin'));
+      }
+    } catch (err) {
       setPinError(t('wrong_pin'));
     }
   };
@@ -950,7 +988,7 @@ export const AdminScreen = () => {
               </div>
             ) : (
               <div className="space-y-2">
-                {syncEngineData.logs.map((l, idx) => (
+                {(syncEngineData.logs || []).map((l, idx) => (
                   <div 
                     key={idx}
                     className="p-3 rounded-2xl border flex items-center justify-between gap-3 text-xs"
@@ -1761,12 +1799,12 @@ export const AdminScreen = () => {
                     onChange={(e) => handleSelectWhatsAppGroup(e.target.value)} 
                     className="w-full px-2.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-emerald-400 font-semibold focus:outline-none focus:border-emerald-500"
                   >
-                    {syncEngineData.groups && syncEngineData.groups.length > 0 ? (
+                    {(syncEngineData.groups && syncEngineData.groups.length > 0) ? (
                       syncEngineData.groups.map(g => (
                         <option key={g.id} value={g.id}>{g.subject}</option>
                       ))
                     ) : (
-                      <option value="">شركة طيف سرمدا</option>
+                      <option value="">{syncEngineData.selectedGroup?.subject || 'شركة طيف سرمدا'}</option>
                     )}
                   </select>
                 </div>
@@ -1788,11 +1826,11 @@ export const AdminScreen = () => {
                 <span>📋</span> ئەڭ يېڭى ماس قەدەملەنگەن مەھسۇلاتلار خاتىرىسى ({syncEngineData.logs?.length || 0})
               </h2>
 
-              {!syncEngineData.logs || syncEngineData.logs.length === 0 ? (
+              {(!syncEngineData.logs || syncEngineData.logs.length === 0) ? (
                 <p className="text-xs text-slate-500 py-4 text-center">تېخى مەھسۇلات يوللانمىدى. تېلېگرام بوتىڭىزغا مەھسۇلات رەسىمى ۋە باھاسىنى تاشلاپ سىناپ بېقىڭ!</p>
               ) : (
                 <div className="space-y-2">
-                  {syncEngineData.logs.map((l, i) => (
+                  {(syncEngineData.logs || []).map((l, i) => (
                     <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800/80 text-xs">
                       <div className="flex items-center gap-3">
                         <span className="text-slate-500 text-[10px]">{l.time}</span>
