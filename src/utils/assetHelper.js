@@ -1,8 +1,16 @@
 export const CLOUDFLARE_CDN = 'https://noor-store.yulgun353.workers.dev';
+export const ASSET_VERSION = 'v1.0.32';
 
 export const getAssetUrl = (path, forceCloudflare = false) => {
   if (!path) return '';
-  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:') || path.startsWith('blob:')) {
+  if (path.startsWith('data:') || path.startsWith('blob:')) {
+    return path;
+  }
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    // Append version if it's our Cloudflare CDN domain and doesn't have query
+    if (path.includes('noor-store.yulgun353.workers.dev') && !path.includes('?')) {
+      return `${path}?v=${ASSET_VERSION}`;
+    }
     return path;
   }
   let finalPath = path.startsWith('/') ? path.slice(1) : path;
@@ -12,13 +20,17 @@ export const getAssetUrl = (path, forceCloudflare = false) => {
     finalPath = `${finalPath}.jpg`;
   }
 
+  const separator = finalPath.includes('?') ? '&' : '?';
+  const versionedPath = `${finalPath}${separator}v=${ASSET_VERSION}`;
+
   if (forceCloudflare) {
-    return `${CLOUDFLARE_CDN}/${finalPath}`;
+    return `${CLOUDFLARE_CDN}/${versionedPath}`;
   }
 
   const baseUrl = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
-  return `${baseUrl}${finalPath}`;
+  return `${baseUrl}${versionedPath}`;
 };
 
 export const getCloudflareAssetUrl = (path) => getAssetUrl(path, true);
+
 

@@ -45,6 +45,19 @@ const safeGetLocalStorage = (key, fallback) => {
   }
 };
 
+// Selective cache flush for moved assets only (preserving database data, cart, orders, reviews)
+try {
+  const currentAssetVersion = 'v_cf_1032';
+  const savedVersion = localStorage.getItem('noor_asset_cache_version');
+  if (savedVersion !== currentAssetVersion) {
+    const movedAssetCacheKeys = ['noor_cached_images', 'noor_media_cache', 'noor_temp_assets', 'noor_image_blobs'];
+    movedAssetCacheKeys.forEach(k => localStorage.removeItem(k));
+    localStorage.setItem('noor_asset_cache_version', currentAssetVersion);
+  }
+} catch (_e) {
+  // Ignore quota/access errors
+}
+
 const StoreContext = createContext(null);
 
 export const StoreProvider = ({ children }) => {
