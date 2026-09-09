@@ -55,16 +55,31 @@ export const mapDbRowToProduct = (row) => {
 };
 
 export const fetchProductsFromSupabase = async () => {
+  // 1. Try local/daemon SyncEngine first
+  try {
+    const localRes = await fetch('http://localhost:3000/api/products', { signal: AbortSignal.timeout(1500) });
+    if (localRes.ok) {
+      const localJson = await localRes.json();
+      if (localJson && Array.isArray(localJson.data) && localJson.data.length > 0) {
+        const mapped = localJson.data.map(mapDbRowToProduct).filter(Boolean);
+        return { success: true, raw: localJson.data, data: mapped };
+      }
+    }
+  } catch (_e) {
+    // Continue to Supabase Cloud
+  }
+
+  // 2. Try Supabase Cloud
   try {
     const { data, error } = await supabase.from('products').select('*').order('id', { ascending: false });
     if (error) {
-      console.error('Supabase fetch error:', error);
+      console.warn('Supabase fetch notice:', error.message || error);
       return { success: false, error: error.message || JSON.stringify(error), data: [] };
     }
     const mapped = (data || []).map(mapDbRowToProduct).filter(Boolean);
     return { success: true, raw: data, data: mapped };
   } catch (err) {
-    console.error('Supabase fetch exception:', err);
+    console.warn('Supabase fetch exception:', err);
     return { success: false, error: err.message || String(err), data: [] };
   }
 };
