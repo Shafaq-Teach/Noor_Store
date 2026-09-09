@@ -7,7 +7,7 @@ export const getAssetUrl = (path, forceCloudflare = false) => {
     return path;
   }
   if (path.startsWith('http://') || path.startsWith('https://')) {
-    // Append version if it's our Cloudflare CDN domain and doesn't have query
+    if (path.endsWith('.apk')) return path;
     if (path.includes('noor-store.yulgun353.workers.dev') && !path.includes('?')) {
       return `${path}?v=${ASSET_VERSION}`;
     }
@@ -18,6 +18,15 @@ export const getAssetUrl = (path, forceCloudflare = false) => {
     finalPath = `images/${finalPath}.jpg`;
   } else if (finalPath.startsWith('images/') && !finalPath.includes('.')) {
     finalPath = `${finalPath}.jpg`;
+  }
+
+  // Ensure clean APK URL for Android installer compatibility
+  if (finalPath.endsWith('.apk')) {
+    if (forceCloudflare) {
+      return `${CLOUDFLARE_CDN}/${finalPath}`;
+    }
+    const baseUrl = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+    return `${baseUrl}${finalPath}`;
   }
 
   const separator = finalPath.includes('?') ? '&' : '?';
@@ -32,5 +41,6 @@ export const getAssetUrl = (path, forceCloudflare = false) => {
 };
 
 export const getCloudflareAssetUrl = (path) => getAssetUrl(path, true);
+
 
 

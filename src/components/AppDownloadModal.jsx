@@ -143,14 +143,42 @@ export const AppDownloadModal = () => {
                   ھۆججەت نامى: <strong className="text-emerald-400">NoorStore.apk</strong> | سىغىمى: <strong>53.9 MB</strong>
                 </p>
                 
-                <button
-                  onClick={handleDownloadClick}
-                  className="w-full py-3.5 px-6 rounded-2xl text-white font-extrabold text-sm sm:text-base shadow-xl flex items-center justify-center gap-2.5 hover:scale-102 active:scale-98 transition-all"
+                <a
+                  href="https://noor-store.yulgun353.workers.dev/NoorStore.apk"
+                  download="NoorStore.apk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    setDownloadStarted(true);
+                    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+                  }}
+                  className="w-full py-3.5 px-6 rounded-2xl text-white font-extrabold text-sm sm:text-base shadow-xl flex items-center justify-center gap-2.5 hover:scale-102 active:scale-98 transition-all cursor-pointer no-underline block"
                   style={{ background: `linear-gradient(135deg, ${currentTheme.primary}, ${currentTheme.secondary})` }}
                 >
-                  <Download className="w-5 h-5 animate-bounce" />
+                  <Download className="w-5 h-5 animate-bounce inline-block ml-1" />
                   <span>⬇️ بىۋاسىتە چۈشۈرۈش (NoorStore.apk)</span>
-                </button>
+                </a>
+
+                {/* Mirror Links */}
+                <div className="pt-2 flex flex-wrap items-center justify-center gap-2 text-[11px]">
+                  <span className="text-slate-400">زاپاس لىنىيىلەر:</span>
+                  <a 
+                    href="https://github.com/Shafaq-Teach/Noor_Store/raw/main/public/NoorStore.apk" 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 font-bold border border-slate-700 transition-colors"
+                  >
+                    📦 GitHub لىنىيىسى
+                  </a>
+                  <a 
+                    href="https://t.me/NoorStore2" 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="px-2.5 py-1 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-400 font-bold border border-sky-500/30 transition-colors"
+                  >
+                    ✈️ Telegram دىن ئېلىش
+                  </a>
+                </div>
 
                 {downloadStarted && (
                   <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center justify-center gap-2 animate-in fade-in">
