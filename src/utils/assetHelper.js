@@ -22,11 +22,7 @@ export const getAssetUrl = (path, forceCloudflare = false) => {
 
   // Ensure clean APK URL for Android installer compatibility
   if (finalPath.endsWith('.apk')) {
-    if (forceCloudflare) {
-      return `${CLOUDFLARE_CDN}/${finalPath}`;
-    }
-    const baseUrl = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
-    return `${baseUrl}${finalPath}`;
+    return 'https://github.com/Shafaq-Teach/NoorStore_apk/releases/download/v1.0.32/app-debug.apk';
   }
 
   const separator = finalPath.includes('?') ? '&' : '?';

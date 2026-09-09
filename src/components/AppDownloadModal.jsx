@@ -144,7 +144,7 @@ export const AppDownloadModal = () => {
                 </p>
                 
                 <a
-                  href="https://noor-store.yulgun353.workers.dev/NoorStore.apk"
+                  href="https://github.com/Shafaq-Teach/NoorStore_apk/releases/download/v1.0.32/app-debug.apk"
                   download="NoorStore.apk"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -156,19 +156,19 @@ export const AppDownloadModal = () => {
                   style={{ background: `linear-gradient(135deg, ${currentTheme.primary}, ${currentTheme.secondary})` }}
                 >
                   <Download className="w-5 h-5 animate-bounce inline-block ml-1" />
-                  <span>⬇️ بىۋاسىتە چۈشۈرۈش (NoorStore.apk)</span>
+                  <span>⬇️ بىۋاسىتە ئەپنى چۈشۈرۈش (NoorStore.apk)</span>
                 </a>
 
                 {/* Mirror Links */}
                 <div className="pt-2 flex flex-wrap items-center justify-center gap-2 text-[11px]">
                   <span className="text-slate-400">زاپاس لىنىيىلەر:</span>
                   <a 
-                    href="https://github.com/Shafaq-Teach/Noor_Store/raw/main/public/NoorStore.apk" 
+                    href="https://raw.githubusercontent.com/Shafaq-Teach/Noor_Store/main/public/NoorStore.apk" 
                     target="_blank" 
                     rel="noreferrer"
                     className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 font-bold border border-slate-700 transition-colors"
                   >
-                    📦 GitHub لىنىيىسى
+                    📦 زاپاس GitHub لىنىيىسى
                   </a>
                   <a 
                     href="https://t.me/NoorStore2" 
