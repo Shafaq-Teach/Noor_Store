@@ -8,7 +8,9 @@ import {
   X, 
   RotateCcw,
   Sparkles,
-  ShoppingBag 
+  ShoppingBag,
+  Smartphone,
+  Download
 } from 'lucide-react';
 
 export const ProductsScreen = () => {
@@ -21,7 +23,8 @@ export const ProductsScreen = () => {
     selectedCategoryId, 
     setSelectedCategoryId, 
     maxPriceFilter, 
-    setMaxPriceFilter 
+    setMaxPriceFilter,
+    openDownloadModal
   } = useStore();
 
   const resetFilters = () => {
@@ -32,6 +35,40 @@ export const ProductsScreen = () => {
 
   return (
     <div className="space-y-4 pb-20 animate-in fade-in">
+      {/* App Download Strip Banner */}
+      <div 
+        onClick={openDownloadModal}
+        className="cursor-pointer p-2.5 sm:p-3 rounded-2xl border shadow-sm flex items-center justify-between gap-2 hover:scale-101 active:scale-99 transition-all"
+        style={{
+          backgroundColor: themeColors.surface,
+          borderColor: themeColors.border
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <div 
+            className="w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-sm flex-shrink-0"
+            style={{ background: `linear-gradient(135deg, ${currentTheme.primary}, ${currentTheme.secondary})` }}
+          >
+            <Smartphone className="w-4 h-4" />
+          </div>
+          <div>
+            <h4 className="font-bold text-xs" style={{ color: themeColors.textPrimary }}>
+              📱 Noor Store ئەپ دېتالىنى قاچىلاڭ
+            </h4>
+            <p className="text-[10px] opacity-75" style={{ color: themeColors.textSecondary }}>
+              ئەڭ يېڭى ئېتىبارلار ۋە چاقماق تېز سۈرئەتتە زاكاز قىلىش (APK)
+            </p>
+          </div>
+        </div>
+        <button
+          className="px-3 py-1.5 rounded-xl text-white font-bold text-xs flex items-center gap-1 shadow-sm flex-shrink-0"
+          style={{ background: `linear-gradient(135deg, ${currentTheme.primary}, ${currentTheme.secondary})` }}
+        >
+          <Download className="w-3.5 h-3.5" />
+          <span>چۈشۈرۈش</span>
+        </button>
+      </div>
+
       {/* Search Input Bar */}
       <div className="relative">
         <div 

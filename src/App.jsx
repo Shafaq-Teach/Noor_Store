@@ -51,6 +51,21 @@ const MainLayout = () => {
         <BottomNavBar />
         <AIAssistantModal />
         <AppDownloadModal />
+
+        {/* Floating Download Button */}
+        <div className="fixed bottom-20 start-4 z-40 animate-bounce">
+          <button
+            onClick={openDownloadModal}
+            className="flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-full shadow-2xl text-white font-black text-xs sm:text-sm border-2 border-white/40 hover:scale-105 active:scale-95 transition-all"
+            style={{
+              background: `linear-gradient(135deg, ${themeColors.primary || '#10b981'}, #0284c7)`
+            }}
+            title="Noor Store ئەپىنى چۈشۈرۈش (APK)"
+          >
+            <span className="text-amber-300">📲</span>
+            <span>ئەپنى چۈشۈرۈش (APK)</span>
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -6,18 +6,20 @@ import {
   Layers, 
   Heart, 
   Scale, 
-  ShoppingCart 
+  ShoppingCart,
+  Smartphone,
+  Download
 } from 'lucide-react';
 
 export const BottomNavBar = () => {
   const { currentTheme, themeColors, isDarkMode, t } = useTheme();
-  const { currentScreen, setCurrentScreen, cartCount, comparedProductIds, favoriteProducts } = useStore();
+  const { currentScreen, setCurrentScreen, cartCount, comparedProductIds, favoriteProducts, openDownloadModal } = useStore();
 
   const navItems = [
     { id: 'HOME', label: t('home'), icon: Home },
     { id: 'PRODUCTS', label: t('products'), icon: Layers },
+    { id: 'DOWNLOAD', label: 'ئەپ دېتالى', icon: Smartphone, isDownload: true },
     { id: 'FAVORITES', label: t('favorites'), icon: Heart, badge: favoriteProducts.length },
-    { id: 'COMPARE', label: t('compare'), icon: Scale, badge: comparedProductIds.length },
     { id: 'CART', label: t('cart'), icon: ShoppingCart, badge: cartCount },
   ];
 
@@ -34,6 +36,27 @@ export const BottomNavBar = () => {
           const Icon = item.icon;
           const isActive = currentScreen === item.id;
           
+          if (item.isDownload) {
+            return (
+              <button
+                key={item.id}
+                onClick={openDownloadModal}
+                className="relative flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all duration-200 hover:scale-105 active:scale-95 text-white shadow-md"
+                style={{
+                  background: `linear-gradient(135deg, ${currentTheme.primary}, ${currentTheme.secondary})`,
+                }}
+                title="Noor Store ئەپىنى چۈشۈرۈش"
+              >
+                <div className="relative">
+                  <Icon className="w-5 h-5 text-amber-300 animate-bounce" />
+                </div>
+                <span className="text-[9px] sm:text-[10px] mt-0.5 whitespace-nowrap font-black">
+                  {item.label}
+                </span>
+              </button>
+            );
+          }
+
           return (
             <button
               key={item.id}

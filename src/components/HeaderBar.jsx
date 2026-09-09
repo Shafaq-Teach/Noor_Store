@@ -69,16 +69,16 @@ export const HeaderBar = () => {
           {/* Download App Button */}
           <button
             onClick={openDownloadModal}
-            className="p-1.5 sm:px-2.5 py-1.5 rounded-full border shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 font-bold text-xs"
+            className="px-2.5 sm:px-3 py-1.5 rounded-full border shadow-md hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 font-extrabold text-xs animate-pulse"
             style={{
-              backgroundColor: currentTheme.primary,
-              borderColor: currentTheme.primary,
+              background: `linear-gradient(135deg, ${currentTheme.primary}, ${currentTheme.secondary})`,
+              borderColor: 'rgba(255,255,255,0.4)',
               color: '#FFFFFF'
             }}
             title="Noor Store ئەپ دېتالىنى چۈشۈرۈش"
           >
-            <Smartphone className="w-4 h-4" />
-            <span className="hidden sm:inline">ئەپنى چۈشۈرۈش</span>
+            <Smartphone className="w-4 h-4 text-amber-300" />
+            <span className="text-[11px] sm:text-xs">📲 ئەپ دېتالى</span>
           </button>
 
           {/* Map Location */}
