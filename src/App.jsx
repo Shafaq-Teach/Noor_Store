@@ -17,7 +17,7 @@ import { AdminScreen } from './screens/AdminScreen';
 
 const MainLayout = () => {
   const { themeColors, isDarkMode } = useTheme();
-  const { currentScreen } = useStore();
+  const { currentScreen, openDownloadModal } = useStore();
 
   const renderScreen = () => {
     switch (currentScreen) {
