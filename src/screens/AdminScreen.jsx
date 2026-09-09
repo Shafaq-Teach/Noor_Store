@@ -215,6 +215,29 @@ export const AdminScreen = () => {
     }
   };
 
+  const [isTestingWhatsApp, setIsTestingWhatsApp] = useState(false);
+
+  const handleTestWhatsAppBroadcast = async () => {
+    setIsTestingWhatsApp(true);
+    try {
+      await fetch('http://localhost:3000/api/test-whatsapp', { method: 'POST' });
+    } catch (e) {}
+
+    try {
+      const cmdPayload = JSON.stringify({ command: 'TEST_WHATSAPP', time: Date.now() });
+      await supabase.from('reviews').update({ admin_reply: cmdPayload }).eq('id', 999999);
+      setGroupSuccessMsg('🚀 WhatsApp گۇرۇپپىسىغا سىناق ئۇچۇرى مۇۋەپپەقىيەتلىك ئەۋەتىلدى!');
+      setTimeout(fetchSyncEngineStatus, 2000);
+    } catch (e) {
+      setGroupSuccessMsg('❌ سىناق يوللاشتا خاتالىق كۆرۈلدى');
+    } finally {
+      setTimeout(() => {
+        setIsTestingWhatsApp(false);
+        setGroupSuccessMsg(null);
+      }, 3500);
+    }
+  };
+
   const handleResetWhatsApp = async () => {
     try {
       await fetch('http://localhost:3000/reset-whatsapp', { method: 'POST' });
@@ -936,22 +959,34 @@ export const AdminScreen = () => {
                 </button>
               </div>
 
-              <select
-                value={syncEngineData.selectedGroup?.id || ''}
-                onChange={(e) => handleSelectWhatsAppGroup(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border text-xs font-bold focus:outline-none focus:border-emerald-500"
-                style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border, color: themeColors.textPrimary }}
-              >
-                {syncEngineData.groups && syncEngineData.groups.length > 0 ? (
-                  syncEngineData.groups.map(g => (
-                    <option key={g.id} value={g.id}>
-                      💬 {g.subject}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">شركة طيف سرمدا</option>
-                )}
-              </select>
+              <div className="flex items-center gap-2">
+                <select
+                  value={syncEngineData.selectedGroup?.id || ''}
+                  onChange={(e) => handleSelectWhatsAppGroup(e.target.value)}
+                  className="flex-1 px-3 py-2.5 rounded-xl border text-xs font-bold focus:outline-none focus:border-emerald-500"
+                  style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border, color: themeColors.textPrimary }}
+                >
+                  {syncEngineData.groups && syncEngineData.groups.length > 0 ? (
+                    syncEngineData.groups.map(g => (
+                      <option key={g.id} value={g.id}>
+                        💬 {g.subject}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">Noor_Store</option>
+                  )}
+                </select>
+
+                <button
+                  onClick={handleTestWhatsAppBroadcast}
+                  disabled={isTestingWhatsApp}
+                  className="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer flex-shrink-0"
+                  title="WhatsApp گۇرۇپپىسىغا سىناق مەھسۇلات ئۇچۇرى ئەۋەتىش"
+                >
+                  <Send className={`w-3.5 h-3.5 ${isTestingWhatsApp ? 'animate-bounce' : ''}`} />
+                  <span>{isTestingWhatsApp ? 'ئەۋەتىۋاتىدۇ...' : '🚀 سىناق يوللاش'}</span>
+                </button>
+              </div>
 
               {groupSuccessMsg && (
                 <p className="text-xs font-bold text-emerald-500 pt-1 animate-in fade-in">
