@@ -101,8 +101,10 @@ export const AdminScreen = () => {
     telegramStatus: 'CONNECTED',
     whatsappStatus: 'CONNECTED',
     latestQrDataUrl: null,
-    selectedGroup: null,
-    groups: [],
+    selectedGroup: { id: '120363422921737233@g.us', subject: 'Noor_Store' },
+    geminiConfigured: true,
+    geminiKey: 'AQ.Ab8RN6IE...',
+    groups: [{ id: '120363422921737233@g.us', subject: 'Noor_Store' }],
     logs: []
   });
   const [isChangingGroup, setIsChangingGroup] = useState(false);
@@ -922,7 +924,7 @@ export const AdminScreen = () => {
                   مەۋجۇت گۇرۇپپىلار: <b>{syncEngineData.groups?.length || 50} دانە</b>
                 </p>
                 <p className="text-[10px] text-emerald-500 font-bold truncate">
-                  🎯 {syncEngineData.selectedGroup?.subject ? `«${syncEngineData.selectedGroup.subject}»` : '«شركة طيف سرمدا»'}
+                  🎯 {syncEngineData.selectedGroup?.subject ? `«${syncEngineData.selectedGroup.subject}»` : '«Noor_Store»'}
                 </p>
               </div>
 
@@ -1804,7 +1806,7 @@ export const AdminScreen = () => {
 
                 {syncEngineData.selectedGroup && (
                   <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold text-center">
-                    🎯 نىشان گۇرۇپپا: {syncEngineData.selectedGroup.subject || 'شركة طيف سرمدا'}
+                    🎯 نىشان گۇرۇپپا: {syncEngineData.selectedGroup.subject || 'Noor_Store'}
                   </div>
                 )}
                 
@@ -1830,7 +1832,7 @@ export const AdminScreen = () => {
                     </button>
                   </div>
                   <select 
-                    value={syncEngineData.selectedGroup?.id || ''} 
+                    value={syncEngineData.selectedGroup?.id || '120363422921737233@g.us'} 
                     onChange={(e) => handleSelectWhatsAppGroup(e.target.value)} 
                     className="w-full px-2.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-emerald-400 font-semibold focus:outline-none focus:border-emerald-500"
                   >
@@ -1839,7 +1841,7 @@ export const AdminScreen = () => {
                         <option key={g.id} value={g.id}>{g.subject}</option>
                       ))
                     ) : (
-                      <option value="">{syncEngineData.selectedGroup?.subject || 'شركة طيف سرمدا'}</option>
+                      <option value="120363422921737233@g.us">{syncEngineData.selectedGroup?.subject || 'Noor_Store'}</option>
                     )}
                   </select>
                 </div>
