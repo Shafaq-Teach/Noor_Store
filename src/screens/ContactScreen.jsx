@@ -20,8 +20,8 @@ export const ContactScreen = () => {
   const { openDownloadModal } = useStore();
 
   const handleCall = () => window.open("tel:0995416715");
-  const handleTelegram = () => window.open("https://t.me/sensiz09985", "_blank");
-  const handleWhatsApp = () => window.open("https://api.whatsapp.com/send?phone=+860995416715&text=Hello%20Noor%20Store!", "_blank");
+  const handleTelegram = () => window.open("https://t.me/NoorStore2", "_blank");
+  const handleWhatsApp = () => window.open("https://chat.whatsapp.com/KFp89uoqOOfCj8ZLDXOlPy", "_blank");
   const handleMap = () => {
     const lat = 40.99958;
     const lon = 28.79152;
