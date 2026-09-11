@@ -950,7 +950,7 @@ export const StoreProvider = ({ children }) => {
       let responseText = '';
 
       if (q.includes('كامېرا') || q.includes('camera') || q.includes('تصوير') || q.includes('رەسىم')) {
-        recommended = products.filter(p => p.specsEn.includes('MP') || p.categoryId === 'phones').slice(0, 2);
+        recommended = products.filter(p => (p.specsEn || '').includes('MP') || p.categoryId === 'phones').slice(0, 2);
         responseText = language === 'uyghur'
           ? "سۈرەت ۋە سىن ئېلىشقا ئەڭ يۇقىرى دەرىجىلىك كۆپ كامېرالىق، ئوپتىكىلىق تۇراقلاشتۇرغۇچلۇق بايراقدار تېلېفونلارنى تەۋسىيە قىلىمەن:"
           : language === 'arabic'
@@ -964,21 +964,21 @@ export const StoreProvider = ({ children }) => {
           ? "للدراسة، العمل، الرسم ومشاهدة المحتوى، إليك أفضل الأجهزة اللوحية (التابلت) بشاشات واسعة:"
           : "For study, remote work, drawing, and media consumption, here are our recommended tablets:";
       } else if (q.includes('3000') || q.includes('ئەرزان') || q.includes('رخيص') || q.includes('budget') || q.includes('خامچوت')) {
-        recommended = [...products].filter(p => p.price <= 3500).sort((a, b) => a.price - b.price).slice(0, 3);
+        recommended = [...products].filter(p => (Number(p.price) || 0) <= 3500).sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0)).slice(0, 3);
         responseText = language === 'uyghur'
           ? "باھا ۋە ئىقتىدار نىسبىتى ئەڭ يۇقىرى، 3000 يۈەن ئەتراپىدىكى تەۋسىيەلىك ئەلا سۈپەتلىك تاللاشلار:"
           : language === 'arabic'
           ? "إليك أفضل الهواتف والأجهزة الاقتصادية ذات الأداء العالي والمواصفات الممتازة بأفضل سعر:"
           : "Here are our top high-value devices offering incredible performance within budget:";
       } else if (q.includes('باتارېيە') || q.includes('battery') || q.includes('بطارية') || q.includes('زەرەت')) {
-        recommended = products.filter(p => p.specsEn.includes('mAh') || p.specsUg.includes('باتارېيە')).slice(0, 2);
+        recommended = products.filter(p => (p.specsEn || '').includes('mAh') || (p.specsUg || '').includes('باتارېيە')).slice(0, 2);
         responseText = language === 'uyghur'
           ? "بىر كۈندىن ئارتۇق بىمالال يېتىدىغان چوڭ سىغىملىق باتارېيەلىك ۋە تېز قاچىلىغۇچلۇق تېلېفونلار:"
           : language === 'arabic'
           ? "أجهزة ببطاريات عملاقة تدوم طويلاً مع دعم الشحن السريع الفائق:"
           : "Devices equipped with large-capacity batteries and ultra-fast charging:";
       } else if (q.includes('ئويۇن') || q.includes('game') || q.includes('gaming') || q.includes('ألعاب')) {
-        recommended = products.filter(p => p.price >= 4000 || p.isFeatured).slice(0, 2);
+        recommended = products.filter(p => (Number(p.price) || 0) >= 4000 || p.isFeatured).slice(0, 2);
         responseText = language === 'uyghur'
           ? "ئېغىر دەرىجىلىك 3D ئويۇنلار ۋە يۇقىرى ئىقتىدارلىق پروگراممىلارغا ماس كېلىدىغان كۈچلۈك بىر تەرەپ قىلغۇچلۇق بايراقدارلار:"
           : language === 'arabic'
@@ -986,9 +986,9 @@ export const StoreProvider = ({ children }) => {
           : "Ultimate powerhouses with top-tier processors and high refresh rate screens for gaming & multitasking:";
       } else {
         const matches = products.filter(p =>
-          p.nameUg.toLowerCase().includes(q) ||
-          p.nameEn.toLowerCase().includes(q) ||
-          p.brand.toLowerCase().includes(q)
+          (p.nameUg || '').toLowerCase().includes(q) ||
+          (p.nameEn || '').toLowerCase().includes(q) ||
+          (p.brand || '').toLowerCase().includes(q)
         );
         recommended = matches.length > 0 ? matches.slice(0, 2) : products.filter(p => p.isFeatured).slice(0, 2);
         responseText = language === 'uyghur'
@@ -1021,14 +1021,15 @@ export const StoreProvider = ({ children }) => {
 
   // Filtered Products
   const filteredProducts = products.filter(p => {
-    const matchesQuery = !searchQuery.trim() ||
-      p.nameUg.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.nameAr.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.nameEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.brand.toLowerCase().includes(searchQuery.toLowerCase());
+    const q = (searchQuery || '').trim().toLowerCase();
+    const matchesQuery = !q ||
+      (p.nameUg || '').toLowerCase().includes(q) ||
+      (p.nameAr || '').toLowerCase().includes(q) ||
+      (p.nameEn || '').toLowerCase().includes(q) ||
+      (p.brand || '').toLowerCase().includes(q);
 
     const matchesCat = !selectedCategoryId || p.categoryId === selectedCategoryId;
-    const matchesPrice = !maxPriceFilter || p.price <= maxPriceFilter;
+    const matchesPrice = !maxPriceFilter || (Number(p.price) || 0) <= maxPriceFilter;
 
     return matchesQuery && matchesCat && matchesPrice;
   });

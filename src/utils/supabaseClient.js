@@ -22,31 +22,32 @@ export const mapDbRowToProduct = (row) => {
     img3 = row.images[2] || img3;
   }
 
-  const primaryName = row.name_ug || row.nameUg || row.title_ug || row.title || row.name || row.product_name || 'Noor Product';
-  const primaryDesc = row.description_ug || row.descUg || row.description || row.desc || row.details || '';
+  const primaryName = String(row.name_ug || row.nameUg || row.title_ug || row.title || row.name || row.product_name || 'Noor Product');
+  const primaryDesc = String(row.description_ug || row.descUg || row.description || row.desc || row.details || '');
+  const brandName = String(row.brand || row.brand_name || 'Noor');
 
   return {
     id: row.id,
     nameUg: primaryName,
-    nameAr: row.name_ar || row.nameAr || row.title_ar || primaryName,
-    nameEn: row.name_en || row.nameEn || row.title_en || primaryName,
+    nameAr: String(row.name_ar || row.nameAr || row.title_ar || primaryName),
+    nameEn: String(row.name_en || row.nameEn || row.title_en || primaryName),
     descriptionUg: primaryDesc,
-    descriptionAr: row.description_ar || row.descAr || primaryDesc,
-    descriptionEn: row.description_en || row.descEn || primaryDesc,
+    descriptionAr: String(row.description_ar || row.descAr || primaryDesc),
+    descriptionEn: String(row.description_en || row.descEn || primaryDesc),
     price: Number(row.price || row.cost || row.amount || 0),
     originalPrice: row.original_price !== null && row.original_price !== undefined 
       ? Number(row.original_price) 
       : (row.old_price !== null && row.old_price !== undefined ? Number(row.old_price) : (row.originalPrice ? Number(row.originalPrice) : null)),
-    categoryId: row.category_id || row.category || row.categoryId || 'phones',
-    brand: row.brand || row.brand_name || 'Noor',
+    categoryId: String(row.category_id || row.category || row.categoryId || 'phones'),
+    brand: brandName,
     imageResName: img1 || '/images/img_phones_1786037591338.jpg',
-    imageResName2: img2,
-    imageResName3: img3,
+    imageResName2: img2 || '',
+    imageResName3: img3 || '',
     isFeatured: !!(row.is_featured ?? row.isFeatured ?? row.featured),
     inStock: !!(row.in_stock ?? (row.stock !== undefined ? Number(row.stock) > 0 : true) ?? row.inStock ?? true),
-    specsUg: row.specs_ug || row.specsUg || `Brand: ${row.brand || 'Noor'}`,
-    specsAr: row.specs_ar || row.specsAr || '',
-    specsEn: row.specs_en || row.specsEn || '',
+    specsUg: String(row.specs_ug || row.specsUg || `Brand: ${brandName}`),
+    specsAr: String(row.specs_ar || row.specsAr || `Brand: ${brandName}`),
+    specsEn: String(row.specs_en || row.specsEn || `Brand: ${brandName}`),
     likesCount: Number(row.likes_count || row.likesCount || row.likes || 0),
     heartsCount: Number(row.hearts_count || row.heartsCount || row.hearts || 0),
     rating: Number(row.rating || 5.0),
@@ -55,21 +56,7 @@ export const mapDbRowToProduct = (row) => {
 };
 
 export const fetchProductsFromSupabase = async () => {
-  // 1. Try local/daemon SyncEngine first
-  try {
-    const localRes = await fetch('http://localhost:3000/api/products', { signal: AbortSignal.timeout(1500) });
-    if (localRes.ok) {
-      const localJson = await localRes.json();
-      if (localJson && Array.isArray(localJson.data) && localJson.data.length > 0) {
-        const mapped = localJson.data.map(mapDbRowToProduct).filter(Boolean);
-        return { success: true, raw: localJson.data, data: mapped };
-      }
-    }
-  } catch (_e) {
-    // Continue to Supabase Cloud
-  }
-
-  // 2. Try Supabase Cloud
+  // Query Supabase Cloud directly
   try {
     const { data, error } = await supabase.from('products').select('*').order('id', { ascending: false });
     if (error) {
