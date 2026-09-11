@@ -290,27 +290,6 @@ export const StoreProvider = ({ children }) => {
           localStorage.setItem('noor_orders', JSON.stringify(visibleOrders));
         }
 
-        // 4. Fetch Shared Cart from Cloud
-        const sharedItems = await fetchCartFromSupabase();
-        if (isMounted && sharedItems && Array.isArray(sharedItems) && sharedItems.length > 0) {
-          const newCartMap = {};
-          sharedItems.forEach(item => {
-            if (item && item.id) {
-              const currentProds = pRes?.data || products;
-              const prod = currentProds.find(p => String(p.id) === String(item.id)) || {
-                id: item.id,
-                nameUg: item.name || 'مەھسۇلات',
-                nameAr: item.name || 'منتج',
-                nameEn: item.name || 'Product',
-                price: Number(item.price) || 0,
-                imageResName: item.image || '/images/img_phones_1786037591338.jpg'
-              };
-              newCartMap[item.id] = { product: prod, quantity: Number(item.qty) || 1 };
-            }
-          });
-          setCartMap(newCartMap);
-        }
-
         // 5. Fetch Global Admin PIN
         const cloudPin = await fetchAdminPinFromSupabase();
         if (cloudPin && isMounted) {
@@ -406,43 +385,13 @@ export const StoreProvider = ({ children }) => {
       )
       .subscribe();
 
-    // 3. Orders & Shared Cart Realtime Channel
+    // 3. Orders Realtime Channel
     const ordersChannel = supabase
       .channel('public:orders')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders' },
         (payload) => {
-          // Handle Realtime Cart synchronization across devices
-          if (payload.new && payload.new.status === 'Cart') {
-            try {
-              let rawItems = [];
-              if (typeof payload.new.items_json === 'string') {
-                rawItems = JSON.parse(payload.new.items_json);
-              } else if (Array.isArray(payload.new.items_json)) {
-                rawItems = payload.new.items_json;
-              }
-              const newCartMap = {};
-              (rawItems || []).forEach(item => {
-                if (item && item.id) {
-                  const prod = productsRef.current.find(p => String(p.id) === String(item.id)) || {
-                    id: item.id,
-                    nameUg: item.name || item.nameUg || 'مەھسۇلات',
-                    nameAr: item.name || item.nameAr || 'منتج',
-                    nameEn: item.name || item.nameEn || 'Product',
-                    price: Number(item.price) || 0,
-                    imageResName: item.image || item.imageResName || '/images/img_phones_1786037591338.jpg'
-                  };
-                  newCartMap[item.id] = { product: prod, quantity: Number(item.qty || item.quantity || 1) };
-                }
-              });
-              setCartMap(newCartMap);
-            } catch (err) {
-              console.warn("Realtime cart sync error:", err);
-            }
-            return;
-          }
-
           if (payload.eventType === 'INSERT' && payload.new && payload.new.status !== 'Cart') {
             const newOrder = mapDbRowToOrder(payload.new);
             if (newOrder) {
@@ -573,14 +522,13 @@ export const StoreProvider = ({ children }) => {
   const finalTotal = Math.max(0, cartSubtotal - discountAmount);
 
   // Cart Actions with Cloud Sync
+  // Cart Actions (Local Isolated State)
   const addToCart = (product) => {
     setCartMap(prev => {
       const existing = prev[product.id];
-      const nextMap = existing 
+      return existing 
         ? { ...prev, [product.id]: { ...existing, quantity: existing.quantity + 1 } }
         : { ...prev, [product.id]: { product, quantity: 1 } };
-      syncCartToSupabase(nextMap);
-      return nextMap;
     });
   };
 
@@ -588,14 +536,11 @@ export const StoreProvider = ({ children }) => {
     setCartMap(prev => {
       const existing = prev[productId];
       if (!existing) return prev;
-      let nextMap;
       if (existing.quantity > 1) {
-        nextMap = { ...prev, [productId]: { ...existing, quantity: existing.quantity - 1 } };
-      } else {
-        nextMap = { ...prev };
-        delete nextMap[productId];
+        return { ...prev, [productId]: { ...existing, quantity: existing.quantity - 1 } };
       }
-      syncCartToSupabase(nextMap);
+      const nextMap = { ...prev };
+      delete nextMap[productId];
       return nextMap;
     });
   };
@@ -604,14 +549,12 @@ export const StoreProvider = ({ children }) => {
     setCartMap(prev => {
       const nextMap = { ...prev };
       delete nextMap[productId];
-      syncCartToSupabase(nextMap);
       return nextMap;
     });
   };
 
   const clearCart = () => {
     setCartMap({});
-    syncCartToSupabase({});
   };
 
   // Coupon Actions
