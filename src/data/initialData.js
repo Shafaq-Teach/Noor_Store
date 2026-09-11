@@ -7,15 +7,15 @@ export const initialCategories = [
 
 export const initialProducts = [
   {
-    id: 1,
-    nameUg: "S23 ultira",
-    nameAr: "سامسونج S23 الترا",
-    nameEn: "Samsung Galaxy S23 Ultra",
-    descriptionUg: "⌨️رام: 12\n⌨️ئىچىكى ساقلغۇچ : 512\n📸كامېرا : 200م،پ.\n⚙️ئاندرويىد: 14\n🔋باتارېيە: 5000\nباھاسى : 💵485",
-    descriptionAr: "رام: 12 | ذاكرة: 512 | كاميرا: 200 ميجابكسل | بطارية: 5000",
-    descriptionEn: "RAM: 12GB | Storage: 512GB | Camera: 200MP | Battery: 5000mAh",
-    price: 485.0,
-    originalPrice: 534.0,
+    id: 1789145936013,
+    nameUg: "Samsung A26",
+    nameAr: "Samsung A26",
+    nameEn: "Samsung A26",
+    descriptionUg: "🚨Samsung A26🚨\n⌨️رام:8\n⌨️ئىچكى ساقلغۇچ:256\n📸كەينى كامېرا50+8+2 م.پ.\n📸ئالدى كامېرا13 م.پ.\n🖥ئىكران: 6.7 \n⚙️ئاندرۇيىد :15\n🔋باتارېيە: 5000 \nبەك پاكىز رىمىنوتقا چۇشمىگەن 🗣\nباھاسى :💵0️⃣2️⃣2️⃣\n\n\n📞 ئالاقىلىشىش📱: NOURLUK  🤜",
+    descriptionAr: "🚨Samsung A26🚨\n⌨️رام:8\n⌨️ئىچكى ساقلغۇچ:256\n📸كەينى كامېرا50+8+2 م.پ.\n📸ئالدى كامېرا13 م.پ.\n🖥ئىكران: 6.7 \n⚙️ئاندرۇيىد :15\n🔋باتارېيە: 5000 \nبەك پاكىز رىمىنوتقا چۇشمىگەن 🗣\nباھاسى :💵0️⃣2️⃣2️⃣\n\n\n📞 ئالاقىلىشىش📱: NOURLUK  🤜",
+    descriptionEn: "Samsung Galaxy A26 (256GB / 8GB RAM)",
+    price: 220.0,
+    originalPrice: 242.0,
     categoryId: "phones",
     brand: "Samsung",
     imageResName: "/images/img_phones_1786037591338.jpg",
@@ -23,11 +23,11 @@ export const initialProducts = [
     imageResName3: "",
     isFeatured: true,
     inStock: true,
-    specsUg: "RAM: 12GB | سىغىمى: 512GB | كامېرا: 200MP | باتارېيە: 5000mAh",
-    specsAr: "RAM: 12GB | سعة: 512GB | كاميرا: 200MP | بطارية: 5000mAh",
-    specsEn: "RAM: 12GB | Storage: 512GB | Camera: 200MP | Battery: 5000mAh",
-    likesCount: 12,
-    heartsCount: 5
+    specsUg: "RAM: 8GB | سىغىمى: 256GB | كامېرا: 50+8+2 م.پ | باتارېيە: 5000mAh",
+    specsAr: "RAM: 8GB | سىغىمى: 256GB | كامېرا: 50+8+2 م.پ | باتارېيە: 5000mAh",
+    specsEn: "RAM: 8GB | سىغىمى: 256GB | كامېرا: 50+8+2 م.پ | باتارېيە: 5000mAh",
+    likesCount: 0,
+    heartsCount: 0
   }
 ];
 

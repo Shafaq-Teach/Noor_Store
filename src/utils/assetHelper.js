@@ -1,5 +1,5 @@
 export const CLOUDFLARE_CDN = 'https://noor-store.yulgun353.workers.dev';
-export const ASSET_VERSION = 'v1.0.34';
+export const ASSET_VERSION = 'v1.0.0';
 
 export const getAssetUrl = (path, forceCloudflare = false) => {
   if (!path) return '';
@@ -22,7 +22,7 @@ export const getAssetUrl = (path, forceCloudflare = false) => {
 
   // Ensure clean APK URL for Android installer compatibility
   if (finalPath.endsWith('.apk')) {
-    return 'https://github.com/Shafaq-Teach/NoorStore_apk/releases/download/v1.0.34/app-debug.apk';
+    return 'https://github.com/Shafaq-Teach/NoorStore_apk/releases/download/v1.0.0/app-debug.apk';
   }
 
   const separator = finalPath.includes('?') ? '&' : '?';
