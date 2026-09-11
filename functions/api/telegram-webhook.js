@@ -22,19 +22,47 @@ function parseProductText(text) {
   let category = 'phones';
   let brand = 'Noor';
 
-  const priceMatches = text.match(/(?:باھاسى|باھا|price|قيمت|سعر|💵|💰|\$)\s*[:：=]?\s*[\$💵]?\s*(\d+(?:\.\d+)?)/i) 
-    || text.match(/(\d+(?:\.\d+)?)\s*(?:dollar|دوللار|usd|\$|سوم)/i)
-    || text.match(/\$\s*(\d+(?:\.\d+)?)/);
+  // 1. Strict Price Parsing (Ignoring Storage, RAM, Battery)
+  const explicitPricePatterns = [
+    /(?:باھاسى|باھا|باھاسىنى|باھاسى\s*:|نەرقى|السعر|سعر|Price|price|ئارانلا|نەق)\s*[:：\-]?\s*[^\d\n]*?(\d+(?:\.\d+)?)/i,
+    /(?:💵|💰|\$|USD|دوللار|TL|ليرة)\s*[:：\-]?\s*(\d+(?:\.\d+)?)/i,
+    /(\d+(?:\.\d+)?)\s*(?:يۈەن|تۈمەن|سوم|TL|USD|\$|ريال|درهم|lira|tl|دوللار|dollar|💵|💰)/i
+  ];
 
-  if (priceMatches && priceMatches[1]) {
-    price = parseFloat(priceMatches[1]);
+  for (const regex of explicitPricePatterns) {
+    const match = text.match(regex);
+    if (match && match[1]) {
+      const num = parseFloat(match[1]);
+      if (!isNaN(num) && num > 0) {
+        price = num;
+        break;
+      }
+    }
+  }
+
+  // Fallback: search lines excluding specs
+  if (price === 0) {
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const line = lines[i];
+      if (/(?:ساقلغۇچ|ساقلىغۇچ|سىغىم|سىغىمى|رام|باتارېيە|كامېرا|ئاندرويىد|android|mah|gb|tb|mp|giga|ram|rom)/i.test(line)) {
+        continue;
+      }
+      const matches = line.match(/\b([1-9][0-9]{1,4})\b/g);
+      if (matches && matches.length > 0) {
+        const val = parseFloat(matches[matches.length - 1]);
+        if (val !== 64 && val !== 128 && val !== 256 && val !== 512 && val !== 1024) {
+          price = val;
+          break;
+        }
+      }
+    }
   }
 
   const lower = text.toLowerCase();
   if (lower.includes('iphone') || lower.includes('apple') || lower.includes('ipad') || lower.includes('macbook')) {
     brand = 'Apple';
     category = lower.includes('ipad') ? 'ipads' : (lower.includes('mac') || lower.includes('watch') ? 'accessories' : 'phones');
-  } else if (lower.includes('samsung') || lower.includes('galaxy') || lower.includes('ultra')) {
+  } else if (lower.includes('samsung') || lower.includes('galaxy') || lower.includes('ultra') || lower.includes('s23') || lower.includes('s24') || lower.includes('s25')) {
     brand = 'Samsung';
     category = 'phones';
   } else if (lower.includes('xiaomi') || lower.includes('redmi') || lower.includes('poco')) {
