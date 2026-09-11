@@ -133,6 +133,27 @@ async function insertProductToSupabase(productData, imageUrl) {
   }
 }
 
+export async function onRequestGet(context) {
+  return new Response(JSON.stringify({
+    status: 'online',
+    service: 'Noor Store Telegram Webhook Serverless Edge',
+    time: new Date().toISOString()
+  }, null, 2), {
+    headers: { 'Content-Type': 'application/json; charset=utf-8' }
+  });
+}
+
+export async function onRequestOptions(context) {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': '*'
+    }
+  });
+}
+
 export async function onRequestPost(context) {
   try {
     const update = await context.request.json();
