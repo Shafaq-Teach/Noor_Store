@@ -56,14 +56,20 @@ export const mapDbRowToProduct = (row) => {
 };
 
 export const fetchProductsFromSupabase = async () => {
-  // Query Supabase Cloud directly
+  // Query Supabase Cloud directly (Newest first)
   try {
-    const { data, error } = await supabase.from('products').select('*').order('id', { ascending: false });
+    const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
     if (error) {
       console.warn('Supabase fetch notice:', error.message || error);
       return { success: false, error: error.message || JSON.stringify(error), data: [] };
     }
     const mapped = (data || []).map(mapDbRowToProduct).filter(Boolean);
+    mapped.sort((a, b) => {
+      const timeA = new Date(a.createdAt || 0).getTime();
+      const timeB = new Date(b.createdAt || 0).getTime();
+      if (timeB !== timeA) return timeB - timeA;
+      return Number(b.id || 0) - Number(a.id || 0);
+    });
     return { success: true, raw: data, data: mapped };
   } catch (err) {
     console.warn('Supabase fetch exception:', err);

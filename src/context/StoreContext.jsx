@@ -349,9 +349,14 @@ export const StoreProvider = ({ children }) => {
             const newProd = mapDbRowToProduct(payload.new);
             if (newProd) {
               setProducts(prev => {
-                const exists = prev.some(p => String(p.id) === String(newProd.id));
-                if (exists) return prev.map(p => String(p.id) === String(newProd.id) ? newProd : p);
-                return [newProd, ...prev];
+                const filtered = prev.filter(p => String(p.id) !== String(newProd.id));
+                const list = [newProd, ...filtered];
+                return list.sort((a, b) => {
+                  const timeA = new Date(a.createdAt || 0).getTime();
+                  const timeB = new Date(b.createdAt || 0).getTime();
+                  if (timeB !== timeA) return timeB - timeA;
+                  return Number(b.id || 0) - Number(a.id || 0);
+                });
               });
             }
           } else if (payload.eventType === 'UPDATE' && payload.new) {
