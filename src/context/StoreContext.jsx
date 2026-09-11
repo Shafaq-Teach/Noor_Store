@@ -47,7 +47,7 @@ const safeGetLocalStorage = (key, fallback) => {
 
 // Selective cache flush to purge all old products and cached assets across devices
 try {
-  const currentAssetVersion = 'v_purge_all_old_products_2026_09_11';
+  const currentAssetVersion = 'v_sync_authoritative_clean_2026_09_11_v2';
   const savedVersion = localStorage.getItem('noor_asset_cache_version');
   if (savedVersion !== currentAssetVersion) {
     const movedAssetCacheKeys = ['noor_products', 'noor_cached_images', 'noor_media_cache', 'noor_temp_assets', 'noor_image_blobs'];
@@ -270,19 +270,8 @@ export const StoreProvider = ({ children }) => {
         // 1. Fetch Products
         const pRes = await fetchProductsFromSupabase();
         if (isMounted && pRes && pRes.data && pRes.data.length > 0) {
-          setProducts(prev => {
-            const remoteMap = new Map();
-            pRes.data.forEach(p => remoteMap.set(String(p.id), p));
-            // Keep remote products first, and preserve any custom local ones not yet synced
-            const merged = [...pRes.data];
-            prev.forEach(p => {
-              if (!remoteMap.has(String(p.id))) {
-                merged.push(p);
-              }
-            });
-            localStorage.setItem('noor_products', JSON.stringify(merged));
-            return merged;
-          });
+          setProducts(pRes.data);
+          safeSetLocalStorage('noor_products', pRes.data);
           setIsCloudConnected(true);
         }
 
@@ -510,21 +499,13 @@ export const StoreProvider = ({ children }) => {
         const pRes = await fetchProductsFromSupabase();
         if (pRes && pRes.data && pRes.data.length > 0) {
           setProducts(prev => {
-            const remoteMap = new Map();
-            pRes.data.forEach(p => remoteMap.set(String(p.id), p));
-            const merged = [...pRes.data];
-            prev.forEach(p => {
-              if (!remoteMap.has(String(p.id))) {
-                merged.push(p);
-              }
-            });
             const prevIds = prev.map(p => p.id).join(',');
-            const newIds = merged.map(p => p.id).join(',');
-            if (prevIds === newIds && prev.length === merged.length) {
+            const newIds = pRes.data.map(p => p.id).join(',');
+            if (prevIds === newIds && prev.length === pRes.data.length) {
               return prev;
             }
-            safeSetLocalStorage('noor_products', merged);
-            return merged;
+            safeSetLocalStorage('noor_products', pRes.data);
+            return pRes.data;
           });
           setIsCloudConnected(true);
         }
