@@ -69,7 +69,7 @@ export const AppDownloadModal = () => {
             <div>
               <div className="flex items-center gap-1.5">
                 <h3 className="text-lg sm:text-xl font-black tracking-tight">Noor Store ئەپ دېتالى</h3>
-                <span className="px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-bold">v1.0.32</span>
+                <span className="px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-bold">v1.0.0</span>
               </div>
               <p className="text-xs text-white/90 font-medium">نۇر دۇكىنى يانفون ئەپ دېتالىنى چۈشۈرۈش مەركىزى</p>
             </div>
@@ -140,11 +140,11 @@ export const AppDownloadModal = () => {
               {/* Main Download Button */}
               <div className="p-4 rounded-3xl border text-center space-y-3" style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}>
                 <p className="text-xs text-slate-400 font-medium">
-                  ھۆججەت نامى: <strong className="text-emerald-400">NoorStore.apk</strong> | سىغىمى: <strong>53.9 MB</strong>
+                  ھۆججەت نامى: <strong className="text-emerald-400">NoorStore.apk</strong> | نەشرى: <strong>v1.0.0</strong>
                 </p>
                 
                 <a
-                  href="https://github.com/Shafaq-Teach/NoorStore_apk/releases/download/v1.0.33/app-debug.apk"
+                  href="https://github.com/Shafaq-Teach/NoorStore_apk/releases/download/v1.0.0/app-debug.apk"
                   download="NoorStore.apk"
                   target="_blank"
                   rel="noopener noreferrer"

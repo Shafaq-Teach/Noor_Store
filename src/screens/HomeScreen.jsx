@@ -159,7 +159,7 @@ export const HomeScreen = () => {
                 📱 Noor Store ئەپ دېتالىنى چۈشۈرۈۋېلىڭ
               </h3>
               <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold border border-emerald-500/30">
-                APK v1.0.32
+                APK v1.0.0
               </span>
             </div>
             <p className="text-xs mt-0.5" style={{ color: themeColors.textSecondary }}>
