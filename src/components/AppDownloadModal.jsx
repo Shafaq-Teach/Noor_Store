@@ -144,7 +144,7 @@ export const AppDownloadModal = () => {
                 </p>
                 
                 <a
-                  href="https://github.com/Shafaq-Teach/NoorStore_apk/releases/download/v1.0.32/app-debug.apk"
+                  href="https://github.com/Shafaq-Teach/NoorStore_apk/releases/download/v1.0.33/app-debug.apk"
                   download="NoorStore.apk"
                   target="_blank"
                   rel="noopener noreferrer"

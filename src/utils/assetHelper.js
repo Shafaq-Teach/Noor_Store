@@ -22,7 +22,7 @@ export const getAssetUrl = (path, forceCloudflare = false) => {
 
   // Ensure clean APK URL for Android installer compatibility
   if (finalPath.endsWith('.apk')) {
-    return 'https://github.com/Shafaq-Teach/NoorStore_apk/releases/download/v1.0.32/app-debug.apk';
+    return 'https://github.com/Shafaq-Teach/NoorStore_apk/releases/download/v1.0.33/app-debug.apk';
   }
 
   const separator = finalPath.includes('?') ? '&' : '?';
