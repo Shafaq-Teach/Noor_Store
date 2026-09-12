@@ -131,6 +131,10 @@ export const AdminScreen = () => {
           return;
         }
       }
+    } catch (e) {
+      // Local daemon not reachable
+    }
+
     // 2. Try Cloudflare Worker 24/7 Edge endpoint
     try {
       const controller = new AbortController();
