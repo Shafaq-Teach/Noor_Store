@@ -1671,254 +1671,69 @@ export const AdminScreen = () => {
         </div>
       )}
 
-      {/* SYSTEM WINDOW MODAL (ORIGINAL COMPLETE DASHBOARD WORKING 24/7 GLOBALLY VIA SUPABASE) */}
+      {/* SYSTEM WINDOW MODAL (EMBEDS CLOUDFLARE 24/7 DASHBOARD DIRECTLY) */}
       {showSyncSystemWindowModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/85 backdrop-blur-md animate-in fade-in overflow-hidden">
           <div 
-            className="w-full max-w-4xl rounded-3xl p-5 sm:p-8 border shadow-2xl space-y-6 my-auto bg-slate-950 text-slate-100 border-slate-800 max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-6xl rounded-3xl p-4 sm:p-6 border shadow-2xl space-y-4 my-auto bg-slate-950 text-slate-100 border-slate-800 h-[92vh] flex flex-col"
             dir="rtl"
           >
-            {/* Header */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl backdrop-blur flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Modal Header */}
+            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-lg flex items-center justify-between gap-3 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-amber-400 flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/20">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-sky-400 flex items-center justify-center text-xl shadow-md">
                   ⚡
                 </div>
                 <div>
-                  <h1 className="text-base sm:text-xl font-bold text-emerald-400">Noor Store - ئاپتوماتىك ماس قەدەملەش سىستېمىسى</h1>
-                  <p className="text-xs text-slate-400">Telegram (تور بېكەت + ئەپ) ➡️ Supabase ➡️ WhatsApp</p>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-sm sm:text-base font-bold text-emerald-400">Noor Store — كۆپ سۇپىلىق مەركەز</h1>
+                    <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      Cloudflare Worker 24/7
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400">https://noor-store-bot.yulgun353.workers.dev</p>
                 </div>
               </div>
+              
               <div className="flex items-center gap-2">
                 <button 
                   type="button"
-                  onClick={fetchSyncEngineStatus}
+                  onClick={() => {
+                    const iframe = document.getElementById('cf-sync-iframe');
+                    if (iframe) iframe.src = iframe.src;
+                  }}
                   className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
                   title="يېڭىلاش"
                 >
                   <RefreshCw className="w-4 h-4" />
                 </button>
                 <a 
-                  href="https://noor-store.yulgun353.workers.dev/" 
+                  href="https://noor-store-bot.yulgun353.workers.dev" 
                   target="_blank" 
                   rel="noreferrer"
-                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold transition-all shadow-md text-white flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-bold transition-all shadow-md text-white flex items-center gap-1.5"
                 >
-                  🌐 تور دۇكىنى
+                  🌐 يېڭى كۆزنەكتە ئېچىش
                 </a>
                 <button 
                   onClick={() => setShowSyncSystemWindowModal(false)}
-                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+                  className="p-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 transition-colors cursor-pointer"
+                  title="يېپىش"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
-            {/* Status Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              
-              {/* Telegram Status */}
-              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold flex items-center gap-2 text-slate-200">
-                    <img src={getAssetUrl('/icons/telegram_3d.png')} className="w-6 h-6 rounded-md object-contain inline-block" alt="Telegram" />
-                    <span>Telegram Bot</span>
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                    ✅ ئۇلاندى
-                  </span>
-                </div>
-                <p className="text-xs text-slate-300 font-bold">بوت: @NoorStore520_Bot</p>
-                <p className="text-[11px] text-slate-400">قانىتىش قانىلى: @NoorStore2 (Admin ID: 7251543464)</p>
-                <div className="space-y-2 pt-1">
-                  <input 
-                    type="text" 
-                    readOnly
-                    value="8741726555:AAFrsGEsYrDYDIzWjMZd4aQxMrz_paL3Sog" 
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 font-mono focus:outline-none"
-                  />
-                  <button 
-                    type="button"
-                    onClick={fetchSyncEngineStatus}
-                    className="w-full py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-md transition-colors cursor-pointer"
-                  >
-                    ساقلاش ۋە ئۇلاش
-                  </button>
-                </div>
-              </div>
-
-              {/* Supabase Status */}
-              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold flex items-center gap-2 text-slate-200">
-                    <span>☁️</span> Supabase Cloud
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                    ✅ ئاكتىپ
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  تور بېكەت ۋە ئاندىروئىد دېتالى بىلەن دەل ۋاقتىدا ئۇلانغان.
-                </p>
-                <div className="pt-2">
-                  <span className="inline-block px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[11px] font-bold">
-                    ⚡ Realtime Sync Active
-                  </span>
-                </div>
-              </div>
-
-              {/* AI Assistant Status */}
-              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold flex items-center gap-2 text-slate-200">
-                    <span>🤖</span> سۈنئىي ئەقىل (AI)
-                  </span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                    syncEngineData.geminiConfigured
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                      : 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
-                  }`}>
-                    {syncEngineData.geminiConfigured ? '✨ Gemini AI ئاكتىپ' : '🧠 ئىچكى ئەقلىي ماتور'}
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
-                  تېلېگرامدىن يوللانغان مەھسۇلات ئۇچۇرلىرىنى ئاپتوماتىك تەھلىل قىلىپ تۈرگە ئايرىيدۇ.
-                </p>
-                {syncEngineData.geminiConfigured && (
-                  <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center justify-between">
-                    <span className="font-bold">🔑 قاچىلانغان Key:</span>
-                    <span className="font-mono text-[11px]">{syncEngineData.geminiKey || 'ئۇلانغان'}</span>
-                  </div>
-                )}
-                <form onSubmit={handleSaveAiKey} className="space-y-2 pt-1">
-                  <input 
-                    type="text" 
-                    value={aiKeyInput} 
-                    onChange={(e) => setAiKeyInput(e.target.value)}
-                    placeholder={syncEngineData.geminiConfigured ? "يېڭى Gemini API Key كىرگۈزۈڭ..." : "Google Gemini API Key..."}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:outline-none focus:border-purple-500 text-xs text-slate-200 font-mono"
-                    dir="ltr"
-                  />
-                  <button 
-                    type="submit" 
-                    disabled={isSavingAi}
-                    className="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md transition-colors cursor-pointer disabled:opacity-50"
-                  >
-                    {isSavingAi ? 'ساقلىنىۋاتىدۇ...' : (syncEngineData.geminiConfigured ? '🔄 API Key نى ئالماشتۇرۇش' : 'سۈنئىي ئەقىلنى ئۇلاش ۋە ساقلاش')}
-                  </button>
-                </form>
-              </div>
-
-              {/* WhatsApp Status */}
-              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold flex items-center gap-2 text-slate-200">
-                    <img src={getAssetUrl('/icons/whatsapp_3d.jpg')} className="w-6 h-6 rounded-md object-contain inline-block" alt="WhatsApp" />
-                    <span>WhatsApp</span>
-                  </span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                    syncEngineData.whatsappStatus === 'CONNECTED'
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                      : 'bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse'
-                  }`}>
-                    {syncEngineData.whatsappStatus === 'CONNECTED' ? '✅ ئۇلاندى' : '📷 QR كود كۈتۈلمەكتە'}
-                  </span>
-                </div>
-
-                {syncEngineData.selectedGroup && (
-                  <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold text-center">
-                    🎯 نىشان گۇرۇپپا: {syncEngineData.selectedGroup.subject || 'Noor_Store'}
-                  </div>
-                )}
-                
-                {syncEngineData.latestQrDataUrl && syncEngineData.whatsappStatus !== 'CONNECTED' && (
-                  <div className="flex flex-col items-center gap-2 p-3 bg-white rounded-2xl shadow-lg">
-                    <img src={syncEngineData.latestQrDataUrl} alt="WhatsApp QR Code" className="w-36 h-36 object-contain" />
-                    <p className="text-[11px] text-slate-900 font-black text-center">📱 تېلېفوندىن سىكاننېرلاڭ</p>
-                  </div>
-                )}
-
-                {/* Target Group Dropdown */}
-                <div className="space-y-1.5 text-xs">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[11px] text-slate-400 font-bold">🎯 نىشانلىق WhatsApp گۇرۇپپىسى:</label>
-                    <button 
-                      type="button"
-                      onClick={handleRefreshWhatsAppGroups} 
-                      disabled={isRefreshingGroups}
-                      className="text-[10px] text-sky-400 hover:underline cursor-pointer flex items-center gap-1"
-                    >
-                      <RefreshCw className={`w-2.5 h-2.5 ${isRefreshingGroups ? 'animate-spin' : ''}`} />
-                      <span>{isRefreshingGroups ? 'يېڭىلىنىۋاتىدۇ...' : '🔄 يېڭىلاش'}</span>
-                    </button>
-                  </div>
-                  <select 
-                    value={syncEngineData.selectedGroup?.id || '120363422921737233@g.us'} 
-                    onChange={(e) => handleSelectWhatsAppGroup(e.target.value)} 
-                    className="w-full px-2.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-emerald-400 font-semibold focus:outline-none focus:border-emerald-500"
-                  >
-                    {(syncEngineData.groups && syncEngineData.groups.length > 0) ? (
-                      syncEngineData.groups.map(g => (
-                        <option key={g.id} value={g.id}>{g.subject}</option>
-                      ))
-                    ) : (
-                      <option value="120363422921737233@g.us">{syncEngineData.selectedGroup?.subject || 'Noor_Store'}</option>
-                    )}
-                  </select>
-                </div>
-
-                <button 
-                  type="button" 
-                  onClick={handleResetWhatsApp}
-                  className="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold transition-colors mt-2 cursor-pointer"
-                >
-                  🔄 QR كودنى يېڭىلاش / قايتا ئۇلاش
-                </button>
-              </div>
-
-            </div>
-
-            {/* Live Sync Logs */}
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 space-y-4">
-              <h2 className="text-sm font-bold flex items-center gap-2 text-slate-300">
-                <span>📋</span> ئەڭ يېڭى ماس قەدەملەنگەن مەھسۇلاتلار خاتىرىسى ({syncEngineData.logs?.length || 0})
-              </h2>
-
-              {(!syncEngineData.logs || syncEngineData.logs.length === 0) ? (
-                <p className="text-xs text-slate-500 py-4 text-center">تېخى مەھسۇلات يوللانمىدى. تېلېگرام بوتىڭىزغا مەھسۇلات رەسىمى ۋە باھاسىنى تاشلاپ سىناپ بېقىڭ!</p>
-              ) : (
-                <div className="space-y-2">
-                  {(syncEngineData.logs || []).map((l, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800/80 text-xs">
-                      <div className="flex items-center gap-3">
-                        <span className="text-slate-500 text-[10px]">{l.time}</span>
-                        <span className="font-bold text-slate-200">{l.name}</span>
-                        <span className="text-emerald-400 font-bold">${l.price}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-[10px]">
-                        <span className={l.supabaseSuccess ? 'text-emerald-400' : 'text-rose-400'}>
-                          ☁️ Supabase {l.supabaseSuccess ? 'OK' : 'FAIL'}
-                        </span>
-                        <span className={l.whatsappSuccess ? 'text-emerald-400' : 'text-amber-400'}>
-                          💬 «{l.whatsappGroup || 'WhatsApp'}»
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Quick Usage Guide */}
-            <div className="bg-emerald-950/30 border border-emerald-800/40 rounded-3xl p-5 space-y-2 text-xs text-emerald-200">
-              <h3 className="font-bold text-emerald-400">💡 تېلېگرامدىن قانداق يوللايسىز؟</h3>
-              <p>تېلېگرام قانال ياكى گۇرۇپپىڭىزغا رەسىم بىلەن تۆۋەندىكىدەك ھەرقانداق قېلىپتا يازسىڭىزلا سىستېما تولۇق چۈشىنىدۇ:</p>
-              <div className="p-3 bg-slate-950/80 rounded-xl text-slate-300 font-mono text-[11px] leading-relaxed">
-                iPhone 16 Pro Max (512GB)<br />
-                باھاسى: 8999 يۈەن<br />
-                رەڭگى قارا، پۈتۈنلەي يېڭى، كاپالەتلىك مەھسۇلات.
-              </div>
+            {/* Embedded Live Cloudflare Worker Dashboard Iframe */}
+            <div className="flex-1 w-full rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-inner relative">
+              <iframe
+                id="cf-sync-iframe"
+                src="https://noor-store-bot.yulgun353.workers.dev"
+                className="w-full h-full border-0 rounded-2xl"
+                title="Noor Store Cloudflare Management Center"
+                allow="clipboard-write; clipboard-read"
+              />
             </div>
 
           </div>
