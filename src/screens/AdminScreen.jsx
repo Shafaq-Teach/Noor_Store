@@ -131,11 +131,29 @@ export const AdminScreen = () => {
           return;
         }
       }
+    // 2. Try Cloudflare Worker 24/7 Edge endpoint
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1200);
+      const res = await fetch('https://noor-store-bot.yulgun353.workers.dev/api/status', { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && typeof data === 'object') {
+          setSyncEngineData(prev => ({
+            ...prev,
+            ...data,
+            logs: Array.isArray(data.logs) ? data.logs : (Array.isArray(prev.logs) ? prev.logs : []),
+            groups: Array.isArray(data.groups) ? data.groups : (Array.isArray(prev.groups) ? prev.groups : [])
+          }));
+          return;
+        }
+      }
     } catch (e) {
-      // Local daemon not reachable, fallback to Supabase cloud state
+      // Worker fetch error, fallback to Supabase directly
     }
 
-    // 2. Read from Supabase Cloud State (accessible globally on mobile / any device)
+    // 3. Read from Supabase Cloud State (accessible globally on mobile / any device)
     try {
       const { data, error } = await supabase.from('reviews').select('comment').eq('id', 999999).maybeSingle();
       if (data && data.comment) {
