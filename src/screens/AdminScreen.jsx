@@ -1707,14 +1707,6 @@ export const AdminScreen = () => {
                 >
                   <RefreshCw className="w-4 h-4" />
                 </button>
-                <a 
-                  href="https://noor-store-bot.yulgun353.workers.dev" 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-bold transition-all shadow-md text-white flex items-center gap-1.5"
-                >
-                  🌐 يېڭى كۆزنەكتە ئېچىش
-                </a>
                 <button 
                   onClick={() => setShowSyncSystemWindowModal(false)}
                   className="p-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 transition-colors cursor-pointer"
