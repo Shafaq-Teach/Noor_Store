@@ -112,9 +112,10 @@ export const AIAssistantModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in" dir={language === 'english' ? 'ltr' : 'rtl'}>
       <div 
-        className="relative w-full max-w-lg h-[88vh] max-h-[700px] rounded-3xl shadow-2xl border flex flex-col overflow-hidden transition-all duration-300 animate-in zoom-in-95"
+        className="relative w-full max-w-lg h-[88vh] max-h-[700px] rounded-3xl shadow-2xl border flex flex-col overflow-hidden transition-all duration-300 animate-in zoom-in-95 text-right"
+        dir={language === 'english' ? 'ltr' : 'rtl'}
         style={{
           backgroundColor: themeColors.surface,
           borderColor: themeColors.border,
@@ -136,7 +137,7 @@ export const AIAssistantModal = () => {
             >
               <Sparkles className="w-5 h-5 animate-pulse" />
             </div>
-            <div>
+            <div className="text-right">
               <h3 className="text-sm sm:text-base font-bold flex items-center gap-1.5" style={{ color: currentTheme.primary }}>
                 {t('ai_assistant_title')}
               </h3>
@@ -149,14 +150,14 @@ export const AIAssistantModal = () => {
           <div className="flex items-center gap-1">
             <button
               onClick={resetAiChat}
-              className="p-2 rounded-full hover:opacity-75 transition-opacity"
+              className="p-2 rounded-full hover:opacity-75 transition-opacity cursor-pointer"
               title="Reset Chat"
             >
               <RotateCcw className="w-4 h-4 opacity-70" />
             </button>
             <button
               onClick={closeAiAdvisor}
-              className="p-2 rounded-full hover:opacity-75 transition-opacity"
+              className="p-2 rounded-full hover:opacity-75 transition-opacity cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -166,13 +167,14 @@ export const AIAssistantModal = () => {
         {/* Quick Suggestion Chips */}
         <div 
           className="p-2.5 border-b overflow-x-auto flex items-center gap-2 no-scrollbar"
+          dir={language === 'english' ? 'ltr' : 'rtl'}
           style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
         >
           {quickPrompts.map(item => (
             <button
               key={item.key}
               onClick={() => askAiAdvisor(t(item.key))}
-              className="whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold shadow-xs border transition-all hover:scale-105 active:scale-95 flex-shrink-0"
+              className="whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold shadow-xs border transition-all hover:scale-105 active:scale-95 flex-shrink-0 cursor-pointer"
               style={{
                 backgroundColor: themeColors.surface,
                 borderColor: themeColors.border,
@@ -185,11 +187,12 @@ export const AIAssistantModal = () => {
         </div>
 
         {/* Chat Messages List */}
-        <div className="flex-1 p-3 sm:p-4 overflow-y-auto space-y-3.5">
+        <div className="flex-1 p-3 sm:p-4 overflow-y-auto space-y-3.5 text-right" dir={language === 'english' ? 'ltr' : 'rtl'}>
           {aiChatMessages.map((msg, index) => (
             <div 
               key={index} 
               className={`flex flex-col ${msg.isUser ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-1`}
+              dir={language === 'english' ? 'ltr' : 'rtl'}
             >
               <div className="flex items-start gap-2 max-w-[90%]">
                 {!msg.isUser && (
@@ -202,11 +205,12 @@ export const AIAssistantModal = () => {
                 )}
 
                 <div 
-                  className={`p-3 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm ${
+                  className={`p-3 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm text-right ${
                     msg.isUser 
                       ? 'rounded-tr-xs text-white' 
                       : 'rounded-tl-xs border'
                   }`}
+                  dir={language === 'english' ? 'ltr' : 'rtl'}
                   style={{
                     backgroundColor: msg.isUser ? currentTheme.primary : themeColors.surfaceVariant,
                     borderColor: msg.isUser ? 'transparent' : themeColors.border,
