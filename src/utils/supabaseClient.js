@@ -524,6 +524,9 @@ export const updateAdminPinInSupabase = async (newPin) => {
 // 6. DYNAMIC STORE SETTINGS SYNCHRONIZATION
 // ==========================================
 
+export const CURRENT_APP_VERSION = '1.0.0';
+export const CURRENT_APP_VERSION_CODE = 1;
+
 export const DEFAULT_STORE_SETTINGS = {
   storeName: 'Noor Store (نۇرلۇق تېلېفونچىلىقى)',
   storeSlogan: 'ئەڭ يېڭى يانفون ۋە تېخنىكا مەھسۇلاتلىرى دۇكىنى',
@@ -536,7 +539,15 @@ export const DEFAULT_STORE_SETTINGS = {
   mapLat: '40.99958',
   mapLng: '28.79152',
   businessHours: 'ھەر كۈنى 09:00 دەن 22:00 گىچە',
-  adminTelegramIds: []
+  adminTelegramIds: ['7251543464'],
+  // App Version Management
+  appVersion: '1.0.0',
+  appVersionCode: 1,
+  appDownloadUrl: 'https://github.com/Shafaq-Teach/NoorStore_apk/releases/download/v1.0.0/app-debug.apk',
+  appReleaseNotes: 'Noor Store رەسمىي 1.0.0 نەشرى: ئەڭ يېڭى يانفونلار باھاسى، دەل ۋاقتىدا قوش يۆنىلىشلىك ماس قەدەملەش، بىخەتەر زاكاز ۋە يۇقىرى بىخەتەرلىك قۇلۇپى.',
+  updatePublished: false, // Only true when admin gives the command to broadcast new update!
+  forceUpdate: false,
+  versionPublishedAt: null
 };
 
 export const fetchStoreSettingsFromSupabase = async () => {
@@ -561,7 +572,14 @@ export const fetchStoreSettingsFromSupabase = async () => {
         mapLat: data.map_lat || DEFAULT_STORE_SETTINGS.mapLat,
         mapLng: data.map_lng || DEFAULT_STORE_SETTINGS.mapLng,
         businessHours: data.business_hours || DEFAULT_STORE_SETTINGS.businessHours,
-        adminTelegramIds: Array.isArray(data.admin_telegram_ids) ? data.admin_telegram_ids : []
+        adminTelegramIds: Array.isArray(data.admin_telegram_ids) ? data.admin_telegram_ids : ['7251543464'],
+        appVersion: data.app_version || DEFAULT_STORE_SETTINGS.appVersion,
+        appVersionCode: Number(data.app_version_code || DEFAULT_STORE_SETTINGS.appVersionCode),
+        appDownloadUrl: data.app_download_url || DEFAULT_STORE_SETTINGS.appDownloadUrl,
+        appReleaseNotes: data.app_release_notes || DEFAULT_STORE_SETTINGS.appReleaseNotes,
+        updatePublished: !!data.update_published,
+        forceUpdate: !!data.force_update,
+        versionPublishedAt: data.version_published_at || null
       };
     }
   } catch (_e) {}
@@ -601,7 +619,14 @@ export const updateStoreSettingsInSupabase = async (newSettings) => {
       map_lat: settings.mapLat,
       map_lng: settings.mapLng,
       business_hours: settings.businessHours,
-      admin_telegram_ids: JSON.stringify(settings.adminTelegramIds || []),
+      admin_telegram_ids: JSON.stringify(settings.adminTelegramIds || ['7251543464']),
+      app_version: settings.appVersion,
+      app_version_code: settings.appVersionCode,
+      app_download_url: settings.appDownloadUrl,
+      app_release_notes: settings.appReleaseNotes,
+      update_published: !!settings.updatePublished,
+      force_update: !!settings.forceUpdate,
+      version_published_at: settings.versionPublishedAt,
       updated_at: new Date().toISOString()
     };
     await supabase.from('store_settings').upsert([dbRow], { onConflict: 'id' });

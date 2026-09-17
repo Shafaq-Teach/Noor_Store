@@ -12,12 +12,13 @@ import {
   Smartphone, 
   Monitor, 
   Sparkles,
-  ExternalLink
+  ExternalLink,
+  Info
 } from 'lucide-react';
 
 export const HeaderBar = () => {
   const { currentTheme, cycleTheme, isDarkMode, toggleDarkMode, language, setLanguage, viewMode, toggleViewMode, themeColors, t } = useTheme();
-  const { cartCount, setCurrentScreen, openAiAdvisor, openDownloadModal } = useStore();
+  const { cartCount, setCurrentScreen, openAiAdvisor, openDownloadModal, openAboutModal } = useStore();
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
 
   const handleMapClick = () => {
@@ -79,6 +80,20 @@ export const HeaderBar = () => {
           >
             <Smartphone className="w-4 h-4 text-amber-300" />
             <span className="text-[11px] sm:text-xs">📲 ئەپ دېتالى</span>
+          </button>
+
+          {/* About Us Button */}
+          <button
+            onClick={openAboutModal}
+            className="p-2 rounded-full border shadow-sm hover:opacity-80 active:scale-95 transition-all"
+            style={{
+              backgroundColor: themeColors.surfaceVariant,
+              borderColor: themeColors.border,
+              color: currentTheme.primary
+            }}
+            title="بىز ھەققىدە (About Us)"
+          >
+            <Info className="w-4 h-4 text-sky-500" />
           </button>
 
           {/* Map Location */}

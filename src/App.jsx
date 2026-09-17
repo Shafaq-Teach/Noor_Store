@@ -5,6 +5,8 @@ import { HeaderBar } from './components/HeaderBar';
 import { BottomNavBar } from './components/BottomNavBar';
 import { AIAssistantModal } from './components/AIAssistantModal';
 import { AppDownloadModal } from './components/AppDownloadModal';
+import { AboutModal } from './components/AboutModal';
+import { AppUpdateModal } from './components/AppUpdateModal';
 
 import { HomeScreen } from './screens/HomeScreen';
 import { ProductsScreen } from './screens/ProductsScreen';
@@ -51,6 +53,8 @@ const MainLayout = () => {
         <BottomNavBar />
         <AIAssistantModal />
         <AppDownloadModal />
+        <AboutModal />
+        <AppUpdateModal />
 
         {/* Floating Download Button */}
         <div className="fixed bottom-20 start-4 z-40 animate-bounce">

@@ -38,7 +38,9 @@ import {
   Phone,
   MapPin,
   Globe,
-  Building2
+  Building2,
+  Save,
+  Rocket
 } from 'lucide-react';
 
 export const AdminScreen = () => {
@@ -87,7 +89,12 @@ export const AdminScreen = () => {
     address: '',
     mapLat: '',
     mapLng: '',
-    businessHours: ''
+    businessHours: '',
+    appVersion: '1.0.0',
+    appVersionCode: 1,
+    appReleaseNotes: '',
+    appDownloadUrl: '',
+    updatePublished: false
   });
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [settingsSaveMsg, setSettingsSaveMsg] = useState(null);
@@ -105,19 +112,47 @@ export const AdminScreen = () => {
         address: storeSettings.address || '',
         mapLat: storeSettings.mapLat || '',
         mapLng: storeSettings.mapLng || '',
-        businessHours: storeSettings.businessHours || ''
+        businessHours: storeSettings.businessHours || '',
+        appVersion: storeSettings.appVersion || '1.0.0',
+        appVersionCode: storeSettings.appVersionCode || 1,
+        appReleaseNotes: storeSettings.appReleaseNotes || 'يېڭى نەشر 1.0.0 رەسمىي تارقىتىلدى. كۆرۈنمە يۈز، بىخەتەرلىك ۋە سۈرئەت تېخىمۇ ئەلالاشتۇرۇلدى.',
+        appDownloadUrl: storeSettings.appDownloadUrl || 'https://github.com/Shafaq-Teach/NoorStore_apk/releases/download/v1.0.0/app-debug.apk',
+        updatePublished: !!storeSettings.updatePublished
       });
     }
   }, [storeSettings]);
 
-  const handleSaveStoreSettings = async (e) => {
+  const handleSaveStoreSettings = async (e, publishOverride = null) => {
     if (e) e.preventDefault();
     setIsSavingSettings(true);
     setSettingsSaveMsg(null);
     try {
-      const ok = await updateStoreSettings(settingsForm);
+      const payload = { ...settingsForm };
+      if (publishOverride !== null) {
+        payload.updatePublished = publishOverride;
+        if (publishOverride) {
+          payload.versionPublishedAt = new Date().toISOString();
+        }
+      }
+      const ok = await updateStoreSettings(payload);
       if (ok) {
-        setSettingsSaveMsg({ type: 'success', text: '✅ دۇكان ئۇچۇرلىرى مۇۋەپپەقىيەتلىك ساقلاندى ۋە پۈتۈن سىستېمىدا يېڭىلاندى!' });
+        setSettingsForm(payload);
+        if (publishOverride === true) {
+          setSettingsSaveMsg({ 
+            type: 'success', 
+            text: '🚀 يېڭى نەشر ئابونتلارغا مۇۋەپپەقىيەتلىك تارقىتىلدى! بارلىق ئابونتلار ئەپ دېتالىنى ئاچقاندا يېڭىلاش كۆزنىكىنى كۆرىدۇ.' 
+          });
+        } else if (publishOverride === false) {
+          setSettingsSaveMsg({ 
+            type: 'success', 
+            text: '⏸️ يېڭىلاش ئۇقتۇرۇشى تارقىتىش توختىتىلدى (تەڭشەكلەر پەقەت ئىچكى ساقلاندى).' 
+          });
+        } else {
+          setSettingsSaveMsg({ 
+            type: 'success', 
+            text: '✅ دۇكان ئۇچۇرلىرى ۋە نەشر تەڭشەكلىرى ساقلاندى (ئابونتلارغا ئۇقتۇرۇش تارقىتىلمىدى).' 
+          });
+        }
       } else {
         setSettingsSaveMsg({ type: 'error', text: '❌ ساقلاش مەغلۇپ بولدى، تورنى تەكشۈرۈڭ.' });
       }
@@ -125,7 +160,7 @@ export const AdminScreen = () => {
       setSettingsSaveMsg({ type: 'error', text: '❌ ' + (err?.message || 'كاشىلا كۆرۈلدى') });
     } finally {
       setIsSavingSettings(false);
-      setTimeout(() => setSettingsSaveMsg(null), 5000);
+      setTimeout(() => setSettingsSaveMsg(null), 6000);
     }
   };
 
@@ -1147,6 +1182,128 @@ export const AdminScreen = () => {
                     />
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* 4. يانفون ئەپ نەشرىنى كونترول قىلىش (App Version Control) */}
+            <div 
+              className="p-5 sm:p-6 rounded-3xl border shadow-md space-y-4"
+              style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+            >
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <Smartphone className="w-4 h-4 text-purple-500" />
+                  <span>4. ئەپ دېتالىنىڭ نەشرىنى كونترول قىلىش مەركىزى</span>
+                </h4>
+
+                <div className="flex items-center gap-2">
+                  <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                    settingsForm.updatePublished 
+                      ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/40 animate-pulse' 
+                      : 'bg-amber-500/20 text-amber-500 border border-amber-500/40'
+                  }`}>
+                    {settingsForm.updatePublished ? '🟢 يېڭىلاش ئابونتلارغا كۆرۈنۈۋاتىدۇ' : '⚪ نەشر تېخى تارقىتىلمىدى (تەييارلىق ھالەتتە)'}
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-400 leading-relaxed">
+                سىز بۇ يەردە ئەپ نەشر ئۇچۇرلىرىنى تەييارلاپ قويالايسىز. سىز <strong>«🚀 يېڭى نەشرنى ئابونتلارغا تارقىتىش»</strong> بۇيرۇقىنى باسمىغۇچە، ئۇچۇرلار پەقەت ئىچكى ساقلىنىدۇ، ئابونتلارنىڭ يانفونىدا يېڭىلاش كۆزنىكى چىقمايدۇ.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">نەشر نامى (Version Name):</label>
+                  <input 
+                    type="text"
+                    value={settingsForm.appVersion}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, appVersion: e.target.value })}
+                    placeholder="1.0.0"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-xs font-mono font-bold focus:outline-none focus:ring-2"
+                    style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+                    dir="ltr"
+                  />
+                  <span className="text-[10px] opacity-60">ھازىرقى نۆۋەتتىكى نەشرى: 1.0.0</span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">نەشر كودى (Version Code):</label>
+                  <input 
+                    type="number"
+                    value={settingsForm.appVersionCode}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, appVersionCode: parseInt(e.target.value) || 1 })}
+                    placeholder="1"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-xs font-mono font-bold focus:outline-none focus:ring-2"
+                    style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+                    dir="ltr"
+                  />
+                  <span className="text-[10px] opacity-60">سېستىما كودى (نۆۋەتتىكى: 1)</span>
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">APK چۈشۈرۈش ئادرېسى (APK Download URL):</label>
+                  <input 
+                    type="text"
+                    value={settingsForm.appDownloadUrl}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, appDownloadUrl: e.target.value })}
+                    placeholder="https://github.com/Shafaq-Teach/NoorStore_apk/releases/download/v1.0.0/app-debug.apk"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-xs font-mono focus:outline-none focus:ring-2"
+                    style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+                    dir="ltr"
+                  />
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">يېڭى نەشر تەسۋىرى / يېڭىلىنىشلار (Release Notes):</label>
+                  <textarea 
+                    rows={3}
+                    value={settingsForm.appReleaseNotes}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, appReleaseNotes: e.target.value })}
+                    placeholder="• تېز سۈرئەتلىك كۆرۈنمە يۈز ئەلالاشتۇرۇلدى&#10;• دۇكان ئۇچۇرلىرى ۋە زاكاز سىستېمىسى كۈچەيتىلدى"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium leading-relaxed focus:outline-none focus:ring-2"
+                    style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+                  />
+                </div>
+              </div>
+
+              {/* Version Control Action Buttons */}
+              <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  disabled={isSavingSettings}
+                  onClick={(e) => handleSaveStoreSettings(e, false)}
+                  className="flex-1 py-3 px-4 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 hover:opacity-80 active:scale-95 transition-all cursor-pointer"
+                  style={{
+                    backgroundColor: themeColors.surfaceVariant,
+                    borderColor: themeColors.border,
+                    color: themeColors.textPrimary
+                  }}
+                >
+                  <Save className="w-4 h-4 text-sky-400" />
+                  <span>💾 پەقەت تەڭشەكلەرنى ساقلاش (ئابونتلارغا ئۇقتۇرماسلىق)</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isSavingSettings}
+                  onClick={(e) => handleSaveStoreSettings(e, true)}
+                  className="flex-1 py-3 px-4 rounded-xl text-white font-extrabold text-xs shadow-lg flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                  style={{ background: 'linear-gradient(135deg, #8B5CF6, #EC4899)' }}
+                >
+                  <Rocket className="w-4 h-4" />
+                  <span>🚀 يېڭى نەشرنى ئابونتلارغا تارقىتىش (بۇيرۇق بېرىش)</span>
+                </button>
+
+                {settingsForm.updatePublished && (
+                  <button
+                    type="button"
+                    disabled={isSavingSettings}
+                    onClick={(e) => handleSaveStoreSettings(e, false)}
+                    className="py-3 px-4 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-500 font-bold text-xs border border-rose-500/30 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    <span>⏸️ نەشر تارقىتىشنى توختىتىش</span>
+                  </button>
+                )}
               </div>
             </div>
 

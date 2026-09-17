@@ -163,6 +163,11 @@ export const StoreProvider = ({ children }) => {
   const openDownloadModal = () => setIsDownloadModalOpen(true);
   const closeDownloadModal = () => setIsDownloadModalOpen(false);
 
+  // About Us Modal State
+  const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
+  const openAboutModal = () => setIsAboutModalOpen(true);
+  const closeAboutModal = () => setIsAboutModalOpen(false);
+
   // Nasheed Audio Player State
   const [nasheedTracks] = useState(initialNasheedTracks);
   const [currentTrack, setCurrentTrack] = useState(initialNasheedTracks[0]);
@@ -1085,6 +1090,9 @@ export const StoreProvider = ({ children }) => {
       isDownloadModalOpen,
       openDownloadModal,
       closeDownloadModal,
+      isAboutModalOpen,
+      openAboutModal,
+      closeAboutModal,
       aiChatMessages,
       isAiThinking,
       askAiAdvisor,
