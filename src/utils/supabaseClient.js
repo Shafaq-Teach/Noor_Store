@@ -520,3 +520,109 @@ export const updateAdminPinInSupabase = async (newPin) => {
   }
 };
 
+// ==========================================
+// 6. DYNAMIC STORE SETTINGS SYNCHRONIZATION
+// ==========================================
+
+export const DEFAULT_STORE_SETTINGS = {
+  storeName: 'Noor Store (نۇرلۇق تېلېفونچىلىقى)',
+  storeSlogan: 'ئەڭ يېڭى يانفون ۋە تېخنىكا مەھسۇلاتلىرى دۇكىنى',
+  phone: '+963985400125',
+  whatsappNumber: '+963985400125',
+  whatsappGroupUrl: 'https://chat.whatsapp.com/KFp89uoqOOfCj8ZLDXOlPy',
+  telegramChannel: 'https://t.me/NoorStore2',
+  telegramContact: '@sensiz09985',
+  address: 'ئىدلىپ ئالتۇن بازىرىدىن تېلېفون كوچىسىغا كىرىپ، سولغا قايرىلىدىغان بىرىنچى كوچىدىكى سول تەرەپ بىرىنچى دۇكان.',
+  mapLat: '40.99958',
+  mapLng: '28.79152',
+  businessHours: 'ھەر كۈنى 09:00 دەن 22:00 گىچە',
+  adminTelegramIds: []
+};
+
+export const fetchStoreSettingsFromSupabase = async () => {
+  // 1. Try public.store_settings table first
+  try {
+    const { data, error } = await supabase
+      .from('store_settings')
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle();
+
+    if (!error && data) {
+      return {
+        storeName: data.store_name || DEFAULT_STORE_SETTINGS.storeName,
+        storeSlogan: data.store_slogan || DEFAULT_STORE_SETTINGS.storeSlogan,
+        phone: data.phone || DEFAULT_STORE_SETTINGS.phone,
+        whatsappNumber: data.whatsapp_number || DEFAULT_STORE_SETTINGS.whatsappNumber,
+        whatsappGroupUrl: data.whatsapp_group_url || DEFAULT_STORE_SETTINGS.whatsappGroupUrl,
+        telegramChannel: data.telegram_channel || DEFAULT_STORE_SETTINGS.telegramChannel,
+        telegramContact: data.telegram_contact || DEFAULT_STORE_SETTINGS.telegramContact,
+        address: data.address || DEFAULT_STORE_SETTINGS.address,
+        mapLat: data.map_lat || DEFAULT_STORE_SETTINGS.mapLat,
+        mapLng: data.map_lng || DEFAULT_STORE_SETTINGS.mapLng,
+        businessHours: data.business_hours || DEFAULT_STORE_SETTINGS.businessHours,
+        adminTelegramIds: Array.isArray(data.admin_telegram_ids) ? data.admin_telegram_ids : []
+      };
+    }
+  } catch (_e) {}
+
+  // 2. Fallback to reviews row #777777
+  try {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('comment')
+      .eq('id', 777777)
+      .maybeSingle();
+
+    if (!error && data && data.comment) {
+      const parsed = JSON.parse(data.comment);
+      return { ...DEFAULT_STORE_SETTINGS, ...parsed };
+    }
+  } catch (_e) {}
+
+  return DEFAULT_STORE_SETTINGS;
+};
+
+export const updateStoreSettingsInSupabase = async (newSettings) => {
+  const settings = { ...DEFAULT_STORE_SETTINGS, ...newSettings };
+
+  // 1. Try updating public.store_settings table
+  try {
+    const dbRow = {
+      id: 1,
+      store_name: settings.storeName,
+      store_slogan: settings.storeSlogan,
+      phone: settings.phone,
+      whatsapp_number: settings.whatsappNumber,
+      whatsapp_group_url: settings.whatsappGroupUrl,
+      telegram_channel: settings.telegramChannel,
+      telegram_contact: settings.telegramContact,
+      address: settings.address,
+      map_lat: settings.mapLat,
+      map_lng: settings.mapLng,
+      business_hours: settings.businessHours,
+      admin_telegram_ids: JSON.stringify(settings.adminTelegramIds || []),
+      updated_at: new Date().toISOString()
+    };
+    await supabase.from('store_settings').upsert([dbRow], { onConflict: 'id' });
+  } catch (_e) {}
+
+  // 2. Always persist to reviews row #777777 for guaranteed cloud sync across all clients
+  try {
+    const reviewRow = {
+      id: 777777,
+      product_id: 1,
+      user_name: '__STORE_SETTINGS__',
+      comment: JSON.stringify(settings),
+      rating: 5,
+      timestamp: Date.now()
+    };
+    await supabase.from('reviews').upsert([reviewRow], { onConflict: 'id' });
+    return true;
+  } catch (err) {
+    console.error('Update store settings exception in Supabase:', err);
+    return false;
+  }
+};
+
+

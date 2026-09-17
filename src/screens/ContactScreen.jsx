@@ -17,14 +17,32 @@ import {
 
 export const ContactScreen = () => {
   const { currentTheme, themeColors, t } = useTheme();
-  const { openDownloadModal } = useStore();
+  const { openDownloadModal, storeSettings } = useStore();
 
-  const handleCall = () => window.open("tel:0995416715");
-  const handleTelegram = () => window.open("https://t.me/NoorStore2", "_blank");
-  const handleWhatsApp = () => window.open("https://chat.whatsapp.com/KFp89uoqOOfCj8ZLDXOlPy", "_blank");
+  const settings = storeSettings || {};
+  const phone = settings.phone || '+963985400125';
+  const whatsappNumber = settings.whatsappNumber || '+963985400125';
+  const whatsappGroupUrl = settings.whatsappGroupUrl || 'https://chat.whatsapp.com/KFp89uoqOOfCj8ZLDXOlPy';
+  const telegramChannel = settings.telegramChannel || 'https://t.me/NoorStore2';
+  const telegramContact = settings.telegramContact || '@sensiz09985';
+  const address = settings.address || t('store_address');
+  const businessHours = settings.businessHours || t('business_hours');
+  const lat = parseFloat(settings.mapLat) || 40.99958;
+  const lon = parseFloat(settings.mapLng) || 28.79152;
+
+  const handleCall = () => window.open(`tel:${phone.replace(/\s+/g, '')}`);
+  const handleTelegram = () => {
+    const url = telegramChannel.startsWith('http') ? telegramChannel : `https://t.me/${telegramChannel.replace('@', '')}`;
+    window.open(url, '_blank');
+  };
+  const handleWhatsApp = () => {
+    if (whatsappGroupUrl && whatsappGroupUrl.startsWith('http')) {
+      window.open(whatsappGroupUrl, '_blank');
+    } else {
+      window.open(`https://api.whatsapp.com/send?phone=${whatsappNumber.replace(/[^0-9+]/g, '')}`, '_blank');
+    }
+  };
   const handleMap = () => {
-    const lat = 40.99958;
-    const lon = 28.79152;
     window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`, '_blank');
   };
 
@@ -54,10 +72,10 @@ export const ContactScreen = () => {
           />
           <div>
             <h3 className="text-base sm:text-lg font-bold" style={{ color: currentTheme.primary }}>
-              {t('app_title')}
+              {settings.storeName || t('app_title')}
             </h3>
             <p className="text-xs opacity-75" style={{ color: themeColors.textSecondary }}>
-              {t('app_subtitle')}
+              {settings.storeSlogan || t('app_subtitle')}
             </p>
           </div>
         </div>
@@ -66,12 +84,12 @@ export const ContactScreen = () => {
         <div className="space-y-2.5 text-xs sm:text-sm">
           <div className="flex items-start gap-2.5">
             <MapPin className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-            <span className="leading-relaxed">{t('store_address')}</span>
+            <span className="leading-relaxed">{address}</span>
           </div>
 
           <div className="flex items-center gap-2.5">
             <Clock className="w-4 h-4 text-amber-500 flex-shrink-0" />
-            <span>{t('business_hours')}</span>
+            <span>{businessHours}</span>
           </div>
         </div>
 
@@ -82,7 +100,7 @@ export const ContactScreen = () => {
             className="p-3 rounded-2xl border flex items-center justify-center gap-2 font-bold text-xs shadow-xs hover:scale-102 transition-all bg-emerald-500 text-white"
           >
             <PhoneCall className="w-4 h-4" />
-            <span>{t('call_now')} (0995416715)</span>
+            <span>{t('call_now')} ({phone})</span>
           </button>
 
           <button
@@ -98,7 +116,7 @@ export const ContactScreen = () => {
             className="p-3 rounded-2xl border flex items-center justify-center gap-2 font-bold text-xs shadow-xs hover:scale-102 transition-all bg-sky-600 text-white"
           >
             <img src={getAssetUrl('/icons/telegram_3d.png')} className="w-5 h-5 rounded-md object-contain" alt="Telegram" />
-            <span>{t('chat_telegram')} (@sensiz09985)</span>
+            <span>{t('chat_telegram')} ({telegramContact})</span>
           </button>
 
           <button
@@ -145,7 +163,7 @@ export const ContactScreen = () => {
       >
         <iframe
           title="Store Location"
-          src="https://maps.google.com/maps?q=40.99958,28.79152&z=15&output=embed"
+          src={`https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed`}
           className="w-full h-64 border-0"
           loading="lazy"
         />

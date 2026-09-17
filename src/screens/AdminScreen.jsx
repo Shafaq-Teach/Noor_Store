@@ -33,7 +33,12 @@ import {
   RefreshCw,
   Zap,
   Radio,
-  Smartphone
+  Smartphone,
+  Settings,
+  Phone,
+  MapPin,
+  Globe,
+  Building2
 } from 'lucide-react';
 
 export const AdminScreen = () => {
@@ -47,6 +52,8 @@ export const AdminScreen = () => {
     setAdminPin, 
     isAdminLoggedIn, 
     setIsAdminLoggedIn,
+    storeSettings,
+    updateStoreSettings,
     updateOrderStatus,
     deleteOrder,
     notifyCustomer,
@@ -66,7 +73,61 @@ export const AdminScreen = () => {
 
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(null);
-  const [activeTab, setActiveTab] = useState('analytics'); // 'analytics' | 'orders' | 'products' | 'coupons' | 'reviews'
+  const [activeTab, setActiveTab] = useState('analytics'); // 'analytics' | 'settings' | 'autosync' | 'orders' | 'products' | 'coupons' | 'reviews'
+
+  // Dynamic Store Settings Form State
+  const [settingsForm, setSettingsForm] = useState({
+    storeName: '',
+    storeSlogan: '',
+    phone: '',
+    whatsappNumber: '',
+    whatsappGroupUrl: '',
+    telegramChannel: '',
+    telegramContact: '',
+    address: '',
+    mapLat: '',
+    mapLng: '',
+    businessHours: ''
+  });
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [settingsSaveMsg, setSettingsSaveMsg] = useState(null);
+
+  useEffect(() => {
+    if (storeSettings) {
+      setSettingsForm({
+        storeName: storeSettings.storeName || '',
+        storeSlogan: storeSettings.storeSlogan || '',
+        phone: storeSettings.phone || '',
+        whatsappNumber: storeSettings.whatsappNumber || '',
+        whatsappGroupUrl: storeSettings.whatsappGroupUrl || '',
+        telegramChannel: storeSettings.telegramChannel || '',
+        telegramContact: storeSettings.telegramContact || '',
+        address: storeSettings.address || '',
+        mapLat: storeSettings.mapLat || '',
+        mapLng: storeSettings.mapLng || '',
+        businessHours: storeSettings.businessHours || ''
+      });
+    }
+  }, [storeSettings]);
+
+  const handleSaveStoreSettings = async (e) => {
+    if (e) e.preventDefault();
+    setIsSavingSettings(true);
+    setSettingsSaveMsg(null);
+    try {
+      const ok = await updateStoreSettings(settingsForm);
+      if (ok) {
+        setSettingsSaveMsg({ type: 'success', text: '✅ دۇكان ئۇچۇرلىرى مۇۋەپپەقىيەتلىك ساقلاندى ۋە پۈتۈن سىستېمىدا يېڭىلاندى!' });
+      } else {
+        setSettingsSaveMsg({ type: 'error', text: '❌ ساقلاش مەغلۇپ بولدى، تورنى تەكشۈرۈڭ.' });
+      }
+    } catch (err) {
+      setSettingsSaveMsg({ type: 'error', text: '❌ ' + (err?.message || 'كاشىلا كۆرۈلدى') });
+    } finally {
+      setIsSavingSettings(false);
+      setTimeout(() => setSettingsSaveMsg(null), 5000);
+    }
+  };
 
   // Change PIN modal state
   const [showChangePinModal, setShowChangePinModal] = useState(false);
@@ -759,7 +820,8 @@ export const AdminScreen = () => {
       <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
         {[
           { id: 'analytics', label: t('analytics_tab'), icon: TrendingUp },
-          { id: 'autosync', label: '⚡ ئاپتوماتىك ماس قەدەملەش', icon: Zap },
+          { id: 'settings', label: '⚙️ دۇكان تەڭشىكى', icon: Settings },
+          { id: 'autosync', label: '✈️ تېلېگرام ئۇلىنىشى', icon: Send },
           { id: 'orders', label: `${t('order')} (${orders.length})`, icon: ShoppingBag },
           { id: 'products', label: `${t('products')} (${products.length})`, icon: Layers },
           { id: 'coupons', label: `${t('manage_coupons')} (${coupons.length})`, icon: Tag },
@@ -870,7 +932,250 @@ export const AdminScreen = () => {
         </div>
       )}
 
-      {/* TAB: AUTO SYNC ENGINE (Telegram -> Supabase -> Website + Android App + WhatsApp) */}
+      {/* TAB: DYNAMIC STORE SETTINGS */}
+      {activeTab === 'settings' && (
+        <div className="space-y-5 animate-in fade-in">
+          {/* Header Card */}
+          <div 
+            className="p-5 rounded-3xl border shadow-md space-y-2"
+            style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+          >
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-sm"
+                style={{ background: `linear-gradient(135deg, ${currentTheme.primary}, ${currentTheme.secondary})` }}
+              >
+                <Settings className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100">
+                  ⚙️ دۇكان ئالاقە ۋە تەڭشەك ئۇچۇرلىرىنى باشقۇرۇش
+                </h3>
+                <p className="text-xs opacity-75" style={{ color: themeColors.textSecondary }}>
+                  بۇ يەردە دۇكان نامى، ئالاقە تېلېفونى، WhatsApp زاكاز نومۇرى ۋە ئادرېس ئورنىنى ئۆزگەرتەلەيسىز. پۈتۈن تور بېكەت ۋە دېتالدا دەرھال ئۆزگىرىدۇ.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {settingsSaveMsg && (
+            <div className={`p-4 rounded-2xl border text-xs font-bold flex items-center justify-between animate-in fade-in ${
+              settingsSaveMsg.type === 'success' 
+                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' 
+                : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
+            }`}>
+              <span>{settingsSaveMsg.text}</span>
+              <button onClick={() => setSettingsSaveMsg(null)}><X className="w-4 h-4" /></button>
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleSaveStoreSettings} className="space-y-4">
+            <div 
+              className="p-5 sm:p-6 rounded-3xl border shadow-md space-y-4"
+              style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+            >
+              <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <Building2 className="w-4 h-4 text-emerald-500" />
+                <span>1. دۇكاننىڭ ئاساسىي كىملىكى</span>
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">دۇكان نامى (Store Name):</label>
+                  <input 
+                    type="text"
+                    value={settingsForm.storeName}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, storeName: e.target.value })}
+                    placeholder="Noor Store (نۇرلۇق تېلېفونچىلىقى)"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium focus:outline-none focus:ring-2"
+                    style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">دۇكان قىسقىچە بايانى (Slogan):</label>
+                  <input 
+                    type="text"
+                    value={settingsForm.storeSlogan}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, storeSlogan: e.target.value })}
+                    placeholder="ئەڭ يېڭى يانفون ۋە تېخنىكا مەھسۇلاتلىرى دۇكىنى"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium focus:outline-none focus:ring-2"
+                    style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div 
+              className="p-5 sm:p-6 rounded-3xl border shadow-md space-y-4"
+              style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+            >
+              <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <Phone className="w-4 h-4 text-sky-500" />
+                <span>2. تېلېفون ۋە ئالاقە نۇمۇرلىرى</span>
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">ئاساسىي تېلېفون نۇمۇرى (تېلېفون قىلىش ئۈچۈن):</label>
+                  <input 
+                    type="text"
+                    value={settingsForm.phone}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, phone: e.target.value })}
+                    placeholder="+963985400125"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium font-mono focus:outline-none focus:ring-2"
+                    style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+                    dir="ltr"
+                  />
+                  <span className="text-[10px] opacity-60">خېرىدار «تېلېفون قىلىش» كۇنۇپكىسىنى باسقاندا تۇتىشىدۇ.</span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-emerald-600 dark:text-emerald-400">خېرىدار زاكاز قىلىدىغان WhatsApp نۇمۇرى:</label>
+                  <input 
+                    type="text"
+                    value={settingsForm.whatsappNumber}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, whatsappNumber: e.target.value })}
+                    placeholder="+963985400125"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-xs font-bold font-mono focus:outline-none focus:ring-2 border-emerald-500/50"
+                    style={{ backgroundColor: themeColors.surfaceVariant }}
+                    dir="ltr"
+                  />
+                  <span className="text-[10px] opacity-60">مەھسۇلات ئاستىدىكى «WhatsApp ئارقىلىق سېتىۋېلىش» مۇشۇ نۇمۇرغا زاكاز يوللايدۇ.</span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">WhatsApp خېرىدارلار گۇرۇپپىسى ئۇلىنىشى:</label>
+                  <input 
+                    type="text"
+                    value={settingsForm.whatsappGroupUrl}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, whatsappGroupUrl: e.target.value })}
+                    placeholder="https://chat.whatsapp.com/..."
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium font-mono focus:outline-none focus:ring-2"
+                    style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+                    dir="ltr"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">تېلېگرام شەخسىي ئالاقە (@نامى ياكى ئۇلىنىش):</label>
+                  <input 
+                    type="text"
+                    value={settingsForm.telegramContact}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, telegramContact: e.target.value })}
+                    placeholder="@sensiz09985"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium font-mono focus:outline-none focus:ring-2"
+                    style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+                    dir="ltr"
+                  />
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">تېلېگرام رەسمىي قانال ئۇلىنىشى:</label>
+                  <input 
+                    type="text"
+                    value={settingsForm.telegramChannel}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, telegramChannel: e.target.value })}
+                    placeholder="https://t.me/NoorStore2"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium font-mono focus:outline-none focus:ring-2"
+                    style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+                    dir="ltr"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div 
+              className="p-5 sm:p-6 rounded-3xl border shadow-md space-y-4"
+              style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border }}
+            >
+              <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-amber-500" />
+                <span>3. دۇكاننىڭ ئەمەلىي ئورنى ۋە ئىش ۋاقتى</span>
+              </h4>
+
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">ئەمەلىي ئادرېس چۈشەندۈرۈشى:</label>
+                  <textarea 
+                    rows={3}
+                    value={settingsForm.address}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
+                    placeholder="ئىدلىپ ئالتۇن بازىرىدىن تېلېفون كوچىسىغا كىرىپ، سولغا قايرىلىدىغان بىرىنچى كوچىدىكى سول تەرەپ بىرىنچى دۇكان."
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium leading-relaxed focus:outline-none focus:ring-2"
+                    style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">خەرىتە كەڭلىكى (Latitude):</label>
+                    <input 
+                      type="text"
+                      value={settingsForm.mapLat}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, mapLat: e.target.value })}
+                      placeholder="40.99958"
+                      className="w-full px-3 py-2 rounded-xl border text-xs font-mono focus:outline-none"
+                      style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+                      dir="ltr"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">خەرىتە ئۇزۇنلۇقى (Longitude):</label>
+                    <input 
+                      type="text"
+                      value={settingsForm.mapLng}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, mapLng: e.target.value })}
+                      placeholder="28.79152"
+                      className="w-full px-3 py-2 rounded-xl border text-xs font-mono focus:outline-none"
+                      style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+                      dir="ltr"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">ئىش ۋاقتى:</label>
+                    <input 
+                      type="text"
+                      value={settingsForm.businessHours}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, businessHours: e.target.value })}
+                      placeholder="ھەر كۈنى 09:00 دەن 22:00 گىچە"
+                      className="w-full px-3 py-2 rounded-xl border text-xs font-medium focus:outline-none"
+                      style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Save Button */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={isSavingSettings}
+                className="w-full py-4 rounded-2xl text-white font-black text-sm shadow-xl flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer disabled:opacity-50"
+                style={{ background: `linear-gradient(135deg, ${currentTheme.primary}, #10B981)` }}
+              >
+                {isSavingSettings ? (
+                  <>
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                    <span>ساقلىنىۋاتىدۇ...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span>💾 بارلىق تەڭشەكلەرنى ساقلاش ۋە سىستېمىغا دەرھال قوللىنىش</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* TAB: AUTO SYNC ENGINE (Telegram -> Supabase -> Website + Android App) */}
       {activeTab === 'autosync' && (
         <div className="space-y-4 animate-in fade-in">
           
@@ -883,36 +1188,49 @@ export const AdminScreen = () => {
               <div className="flex items-center gap-3">
                 <div 
                   className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-sm"
-                  style={{ background: `linear-gradient(135deg, ${currentTheme.primary}, #10B981)` }}
+                  style={{ background: `linear-gradient(135deg, ${currentTheme.primary}, #0ea5e9)` }}
                 >
-                  <Zap className="w-5 h-5" />
+                  <Send className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold flex items-center gap-2">
-                    <span>⚡ كۆپ سۇپىلىق ئاپتوماتىك ماس قەدەملەش مەركىزى</span>
+                    <span>✈️ تېلېگرام ۋە بۇلۇت مەركىزى ئۇلىنىشى</span>
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
-                      100% ئاكتىپ
+                      24/7 ئاكتىپ
                     </span>
                   </h3>
                   <p className="text-[11px] opacity-75" style={{ color: themeColors.textSecondary }}>
-                    Telegram (تور بېكەت + ئاندىروئىد دېتالى) ➡️ Supabase ➡️ WhatsApp گۇرۇپپىسى
+                    تېلېگرام بوتى (@NoorStore520_Bot) ➡️ كۆپ پارچە رەسىملىك ئالبوم ➡️ Supabase بۇلۇت ➡️ @NoorStore2 قانىلى
                   </p>
                 </div>
               </div>
 
-              <button 
-                onClick={() => setShowSyncSystemWindowModal(true)}
-                className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>🖥️</span>
-                <span>سىستېما كۆزنىكىنى ئېچىش</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <a 
+                  href="https://t.me/NoorStore520_Bot" 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-1.5"
+                >
+                  <span>🤖</span>
+                  <span>بوتنى ئېچىش</span>
+                </a>
+                <a 
+                  href="https://t.me/NoorStore2" 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 transition-all flex items-center gap-1.5"
+                >
+                  <span>📢</span>
+                  <span>قانالنى كۆرۈش</span>
+                </a>
+              </div>
             </div>
 
             {/* Status Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 text-xs">
               
-              {/* Telegram Status Card */}
+              {/* Telegram Bot Card */}
               <div className="p-3.5 rounded-2xl border bg-black/5 dark:bg-white/5 space-y-1.5" style={{ borderColor: themeColors.border }}>
                 <div className="flex items-center justify-between">
                   <span className="font-bold flex items-center gap-1.5 text-sky-500">
@@ -920,33 +1238,29 @@ export const AdminScreen = () => {
                     <span>Telegram Bot</span>
                   </span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-500">
-                    ✅ ئۇلاندى
+                    ✅ قۇلۇپلاندى
                   </span>
                 </div>
                 <p className="text-[11px] opacity-80">بوت: <b className="text-sky-400">@NoorStore520_Bot</b></p>
-                <p className="text-[10px] opacity-65">Admin ID: 7251543464</p>
+                <p className="text-[10px] opacity-65">Admin ID: 7251543464 (PIN قوغدالغان)</p>
               </div>
 
-              {/* WhatsApp Status Card */}
+              {/* Target Channel Card */}
               <div className="p-3.5 rounded-2xl border bg-black/5 dark:bg-white/5 space-y-1.5" style={{ borderColor: themeColors.border }}>
                 <div className="flex items-center justify-between">
-                  <span className="font-bold flex items-center gap-1.5 text-emerald-500">
-                    <img src={getAssetUrl('/icons/whatsapp_3d.jpg')} className="w-5 h-5 rounded-md object-contain inline-block" alt="WhatsApp" />
-                    <span>WhatsApp</span>
+                  <span className="font-bold flex items-center gap-1.5 text-sky-400">
+                    <Send className="w-3.5 h-3.5" />
+                    <span>تارقىتىش قانىلى</span>
                   </span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    syncEngineData.whatsappStatus === 'CONNECTED' 
-                      ? 'bg-emerald-500/20 text-emerald-500' 
-                      : 'bg-amber-500/20 text-amber-500'
-                  }`}>
-                    {syncEngineData.whatsappStatus === 'CONNECTED' ? '✅ ئۇلاندى' : '⚠️ ئۇلانمىدى'}
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-500">
+                    ✅ ئاكتىپ
                   </span>
                 </div>
                 <p className="text-[11px] opacity-80">
-                  مەۋجۇت گۇرۇپپىلار: <b>{syncEngineData.groups?.length || 50} دانە</b>
+                  نىشان قانال: <b>@NoorStore2</b>
                 </p>
                 <p className="text-[10px] text-emerald-500 font-bold truncate">
-                  🎯 {syncEngineData.selectedGroup?.subject ? `«${syncEngineData.selectedGroup.subject}»` : '«Noor_Store»'}
+                  ⚡ كۆپ پارچە رەسىم (ئالبوم) بىرلا چىقىدۇ
                 </p>
               </div>
 
@@ -966,57 +1280,15 @@ export const AdminScreen = () => {
 
             </div>
 
-            {/* Target WhatsApp Group Selector */}
-            <div className="p-4 rounded-2xl border space-y-2 mt-2" style={{ backgroundColor: themeColors.surfaceVariant, borderColor: themeColors.border }}>
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold flex items-center gap-1.5 text-emerald-500">
-                  <Radio className="w-4 h-4" />
-                  <span>🎯 قايسى WhatsApp گۇرۇپپىسىغا ئاپتوماتىك يوللانسۇن؟</span>
-                </label>
-                <button
-                  onClick={handleRefreshWhatsAppGroups}
-                  disabled={isRefreshingGroups}
-                  className="px-2.5 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-500 text-[11px] font-bold flex items-center gap-1 border border-emerald-500/30 transition-all cursor-pointer"
-                >
-                  <RefreshCw className={`w-3 h-3 ${isRefreshingGroups ? 'animate-spin' : ''}`} />
-                  <span>{isRefreshingGroups ? 'تەكشۈرۈۋاتىدۇ...' : '🔄 گۇرۇپپىلارنى يېڭىلاش'}</span>
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <select
-                  value={syncEngineData.selectedGroup?.id || ''}
-                  onChange={(e) => handleSelectWhatsAppGroup(e.target.value)}
-                  className="flex-1 px-3 py-2.5 rounded-xl border text-xs font-bold focus:outline-none focus:border-emerald-500"
-                  style={{ backgroundColor: themeColors.surface, borderColor: themeColors.border, color: themeColors.textPrimary }}
-                >
-                  {syncEngineData.groups && syncEngineData.groups.length > 0 ? (
-                    syncEngineData.groups.map(g => (
-                      <option key={g.id} value={g.id}>
-                        💬 {g.subject}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="">Noor_Store</option>
-                  )}
-                </select>
-
-                <button
-                  onClick={handleTestWhatsAppBroadcast}
-                  disabled={isTestingWhatsApp}
-                  className="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer flex-shrink-0"
-                  title="WhatsApp گۇرۇپپىسىغا سىناق مەھسۇلات ئۇچۇرى ئەۋەتىش"
-                >
-                  <Send className={`w-3.5 h-3.5 ${isTestingWhatsApp ? 'animate-bounce' : ''}`} />
-                  <span>{isTestingWhatsApp ? 'ئەۋەتىۋاتىدۇ...' : '🚀 سىناق يوللاش'}</span>
-                </button>
-              </div>
-
-              {groupSuccessMsg && (
-                <p className="text-xs font-bold text-emerald-500 pt-1 animate-in fade-in">
-                  {groupSuccessMsg}
-                </p>
-              )}
+            {/* Telegram Help Banner */}
+            <div className="p-3 rounded-2xl border bg-sky-500/10 border-sky-500/20 text-xs text-sky-600 dark:text-sky-300 space-y-1">
+              <p className="font-bold flex items-center gap-1.5">
+                <span>🛡️</span>
+                <span>بىخەتەرلىك قۇلۇپى:</span>
+              </p>
+              <p className="text-[11px] opacity-85 leading-relaxed">
+                يوللىغان مەھسۇلاتلار پەقەت خوجايىننىڭ تەستىقلانغان تېلېگرام كىملىكى ياكى <code>/admin [مەخپىي_نۇمۇر]</code> بۇيرۇقى ئارقىلىقلا قوبۇل قىلىنىدۇ. يات كىشىلەرنىڭ بوت ئارقىلىق مال قوشۇشى چەكلەنگەن.
+              </p>
             </div>
 
           </div>

@@ -22,7 +22,10 @@ import {
   fetchCartFromSupabase,
   syncCartToSupabase,
   fetchAdminPinFromSupabase,
-  updateAdminPinInSupabase
+  updateAdminPinInSupabase,
+  DEFAULT_STORE_SETTINGS,
+  fetchStoreSettingsFromSupabase,
+  updateStoreSettingsInSupabase
 } from '../utils/supabaseClient';
 import confetti from 'canvas-confetti';
 
@@ -136,6 +139,19 @@ export const StoreProvider = ({ children }) => {
     return safeGetLocalStorage('noor_admin_pin', '1234');
   });
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+
+  // Dynamic Store Settings (Editable in Admin Panel)
+  const [storeSettings, setStoreSettings] = useState(() => {
+    return safeGetLocalStorage('noor_store_settings', DEFAULT_STORE_SETTINGS);
+  });
+
+  const updateStoreSettings = async (newSettings) => {
+    const merged = { ...storeSettings, ...newSettings };
+    setStoreSettings(merged);
+    safeSetLocalStorage('noor_store_settings', merged);
+    const ok = await updateStoreSettingsInSupabase(merged);
+    return ok;
+  };
 
   // AI Shopping Advisor State
   const [isAiAdvisorOpen, setIsAiAdvisorOpen] = useState(false);
@@ -296,6 +312,13 @@ export const StoreProvider = ({ children }) => {
           setAdminPin(cloudPin);
           localStorage.setItem('noor_admin_pin', cloudPin);
         }
+
+        // 6. Fetch Dynamic Store Settings
+        const cloudSettings = await fetchStoreSettingsFromSupabase();
+        if (cloudSettings && isMounted) {
+          setStoreSettings(cloudSettings);
+          safeSetLocalStorage('noor_store_settings', cloudSettings);
+        }
       } catch (err) {
         console.warn('Supabase initial fetch failed:', err);
       } finally {
@@ -305,13 +328,18 @@ export const StoreProvider = ({ children }) => {
 
     loadDataFromCloud();
 
-    // Periodic check for Global Admin PIN changes (safe interval)
+    // Periodic check for Global Admin PIN & Settings changes (safe interval)
     const pinPollInterval = setInterval(async () => {
       try {
         const p = await fetchAdminPinFromSupabase();
         if (p && isMounted) {
           setAdminPin(p);
           safeSetLocalStorage('noor_admin_pin', p);
+        }
+        const s = await fetchStoreSettingsFromSupabase();
+        if (s && isMounted) {
+          setStoreSettings(s);
+          safeSetLocalStorage('noor_store_settings', s);
         }
       } catch (e) {}
     }, 15000);
@@ -1049,6 +1077,8 @@ export const StoreProvider = ({ children }) => {
       setAdminPin,
       isAdminLoggedIn,
       setIsAdminLoggedIn,
+      storeSettings,
+      updateStoreSettings,
       isAiAdvisorOpen,
       openAiAdvisor,
       closeAiAdvisor,

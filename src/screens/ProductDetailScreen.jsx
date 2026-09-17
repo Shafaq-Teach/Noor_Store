@@ -31,7 +31,8 @@ export const ProductDetailScreen = () => {
     toggleCompare, 
     isCompared,
     getReviewsForProduct,
-    addReview
+    addReview,
+    storeSettings
   } = useStore();
 
   const [activeImageIdx, setActiveImageIdx] = useState(0);
@@ -69,17 +70,24 @@ export const ProductDetailScreen = () => {
   const productReviews = getReviewsForProduct(p.id);
 
   const handleOrderWhatsApp = () => {
-    const msg = `I want to buy: ${name} ($${p.price})`;
-    window.open(`https://api.whatsapp.com/send?phone=+860995416715&text=${encodeURIComponent(msg)}`, '_blank');
+    const waNumber = (storeSettings?.whatsappNumber || '+963985400125').replace(/[^0-9+]/g, '');
+    const msg = language === 'arabic'
+      ? `مرحباً، أريد شراء هذا المنتج:\n• ${name}\n• السعر: $${p.price}`
+      : `ياخشىمۇسىز، مەن بۇ مەھسۇلاتنى سېتىۋالماقچىتىم:\n• ${name}\n• باھاسى: $${p.price}`;
+    window.open(`https://api.whatsapp.com/send?phone=${waNumber}&text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   const handleOrderTelegram = () => {
-    const msg = `I want to buy: ${name} ($${p.price})`;
-    window.open(`https://t.me/sensiz09985?text=${encodeURIComponent(msg)}`, '_blank');
+    const tgUser = (storeSettings?.telegramContact || '@sensiz09985').replace('@', '');
+    const msg = language === 'arabic'
+      ? `مرحباً، أريد شراء هذا المنتج:\n• ${name}\n• السعر: $${p.price}`
+      : `ياخشىمۇسىز، مەن بۇ مەھسۇلاتنى سېتىۋالماقچىتىم:\n• ${name}\n• باھاسى: $${p.price}`;
+    window.open(`https://t.me/${tgUser}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   const handleCallStore = () => {
-    window.open("tel:0995416715");
+    const phone = (storeSettings?.phone || '+963985400125').replace(/\s+/g, '');
+    window.open(`tel:${phone}`);
   };
 
   const handleReviewSubmit = (e) => {
