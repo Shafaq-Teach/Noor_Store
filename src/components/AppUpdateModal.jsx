@@ -1,6 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
-import { useStore } from '../context/StoreContext';
 import { getAssetUrl } from '../utils/assetHelper';
 import { 
   Download, 
@@ -9,23 +8,110 @@ import {
   X, 
   Smartphone, 
   Info,
-  Zap
+  ExternalLink
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
+// Current installed app version
+const CURRENT_APP_VERSION = '1.0.0';
+const GITHUB_REPO = 'Shafaq-Teach/NoorStore_apk';
+
+// Compare semantic version strings: e.g. "1.0.1" > "1.0.0"
+const isNewerVersion = (remoteTag, localVersion = CURRENT_APP_VERSION) => {
+  if (!remoteTag) return false;
+  const cleanRemote = String(remoteTag).replace(/^[^\d]*/, '').trim();
+  const cleanLocal = String(localVersion).replace(/^[^\d]*/, '').trim();
+  if (cleanRemote === cleanLocal) return false;
+
+  const remoteParts = cleanRemote.split('.').map(n => parseInt(n, 10) || 0);
+  const localParts = cleanLocal.split('.').map(n => parseInt(n, 10) || 0);
+
+  for (let i = 0; i < Math.max(remoteParts.length, localParts.length); i++) {
+    const r = remoteParts[i] || 0;
+    const l = localParts[i] || 0;
+    if (r > l) return true;
+    if (r < l) return false;
+  }
+  return false;
+};
+
 export const AppUpdateModal = () => {
   const { currentTheme, themeColors } = useTheme();
-  const { storeSettings } = useStore();
+  const [updateInfo, setUpdateInfo] = useState(null);
   const [isDismissed, setIsDismissed] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
-  // Only show if the store admin has explicitly commanded: updatePublished === true
-  const isPublished = storeSettings?.updatePublished === true;
-  if (!isPublished || isDismissed) return null;
+  useEffect(() => {
+    let isMounted = true;
 
-  const versionStr = storeSettings?.appVersion || '1.0.0';
-  const releaseNotes = storeSettings?.appReleaseNotes || 'يېڭى ئىقتىدارلار قوشۇلدى، كۆرۈنمە يۈز ئەلالاشتۇرۇلدى ۋە سۈرئەت تېزلىتىلدى.';
-  const downloadUrl = storeSettings?.appDownloadUrl || 'https://github.com/Shafaq-Teach/NoorStore_apk/releases/download/v1.0.0/app-debug.apk';
+    const checkGitHubRelease = async () => {
+      try {
+        // Cache check for 30 minutes to stay within GitHub API limits
+        const cachedStr = sessionStorage.getItem('noor_gh_release');
+        const cachedTime = sessionStorage.getItem('noor_gh_release_time');
+        const now = Date.now();
+
+        let releaseData = null;
+        if (cachedStr && cachedTime && (now - Number(cachedTime) < 30 * 60 * 1000)) {
+          releaseData = JSON.parse(cachedStr);
+        } else {
+          const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
+            headers: { Accept: 'application/vnd.github.v3+json' }
+          });
+          if (res.ok) {
+            releaseData = await res.json();
+            sessionStorage.setItem('noor_gh_release', JSON.stringify(releaseData));
+            sessionStorage.setItem('noor_gh_release_time', String(now));
+          }
+        }
+
+        if (!releaseData || !releaseData.tag_name) return;
+
+        const remoteTag = releaseData.tag_name;
+        // Check if user already dismissed this specific version in this session
+        const dismissedTag = sessionStorage.getItem('noor_dismissed_update');
+        if (dismissedTag === remoteTag) return;
+
+        // Compare with current version 1.0.0
+        if (isNewerVersion(remoteTag, CURRENT_APP_VERSION)) {
+          const apkAsset = Array.isArray(releaseData.assets)
+            ? releaseData.assets.find(a => a.name && a.name.endsWith('.apk'))
+            : null;
+
+          const downloadUrl = (apkAsset && apkAsset.browser_download_url)
+            || releaseData.html_url
+            || `https://github.com/${GITHUB_REPO}/releases/latest`;
+
+          if (isMounted) {
+            setUpdateInfo({
+              tag: remoteTag,
+              title: releaseData.name || `Noor Store ${remoteTag}`,
+              notes: releaseData.body || 'يېڭى نەشر چىقتى. ئەلالاشتۇرۇش ۋە سۈرئەت تېزلىتىش ئېلىپ بېرىلدى.',
+              downloadUrl,
+              publishedAt: releaseData.published_at
+            });
+          }
+        }
+      } catch (err) {
+        // Silent error: do not disturb user if network is restricted
+      }
+    };
+
+    checkGitHubRelease();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (!updateInfo || isDismissed) return null;
+
+  const handleDismiss = () => {
+    setIsDismissed(true);
+    if (updateInfo?.tag) {
+      sessionStorage.setItem('noor_dismissed_update', updateInfo.tag);
+    }
+  };
 
   const handleUpdateClick = () => {
     setDownloading(true);
@@ -35,9 +121,9 @@ export const AppUpdateModal = () => {
       origin: { y: 0.6 }
     });
 
-    // 1-Click direct APK download
+    // Direct download
     const link = document.createElement('a');
-    link.href = downloadUrl;
+    link.href = updateInfo.downloadUrl;
     link.download = 'NoorStore.apk';
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
@@ -78,15 +164,15 @@ export const AppUpdateModal = () => {
 
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-black tracking-tight">يېڭى نەشر تارقىتىلدى!</h3>
-                <span className="px-2 py-0.5 rounded-full bg-white/25 text-[11px] font-mono font-black">v{versionStr}</span>
+                <h3 className="text-base sm:text-lg font-black tracking-tight">يېڭى نەشر چىقتى!</h3>
+                <span className="px-2 py-0.5 rounded-full bg-white/25 text-[11px] font-mono font-black">{updateInfo.tag}</span>
               </div>
-              <p className="text-xs text-white/90 font-medium">Noor Store ئەپ دېتالىنى يېڭىلاڭ</p>
+              <p className="text-xs text-white/90 font-medium">GitHub رەسمىي نەشرى</p>
             </div>
           </div>
 
           <button
-            onClick={() => setIsDismissed(true)}
+            onClick={handleDismiss}
             className="relative z-10 p-1.5 rounded-full bg-black/20 hover:bg-black/40 text-white transition-colors cursor-pointer"
             title="تاقاش"
           >
@@ -103,18 +189,18 @@ export const AppUpdateModal = () => {
           >
             <div className="flex items-center gap-1.5 font-bold text-xs text-emerald-500">
               <Sparkles className="w-4 h-4" />
-              <span>يېڭىلانغان مەزمۇنلار:</span>
+              <span>{updateInfo.title}</span>
             </div>
-            <p className="text-xs leading-relaxed opacity-90 whitespace-pre-line">
-              {releaseNotes}
+            <p className="text-xs leading-relaxed opacity-90 whitespace-pre-line max-h-36 overflow-y-auto">
+              {updateInfo.notes}
             </p>
           </div>
 
           {/* Conflict-Free Assurance */}
-          <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 space-y-1">
+          <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 space-y-1">
             <div className="flex items-center gap-1.5 font-bold text-xs">
               <Info className="w-4 h-4 flex-shrink-0" />
-              <span>توقۇنۇشسىز بىر كۇنۇپكا بىلەن يېڭىلاش:</span>
+              <span>بىر كۇنۇپكا بىلەن بىۋاسىتە يېڭىلاش:</span>
             </div>
             <p className="text-[11px] leading-relaxed opacity-90">
               كونا نەشرىنى ئۆچۈرۈشنىڭ ھاجىتى يوق. تۆۋەندىكى كۇنۇپكىنى باسسىڭىزلا يېڭى ھۆججەت چۈشۈپ كونا نەشرىنىڭ ئۈستىگە بىۋاسىتە يېڭىلىنىدۇ.
@@ -128,7 +214,7 @@ export const AppUpdateModal = () => {
             style={{ background: `linear-gradient(135deg, #10B981, ${currentTheme.primary})` }}
           >
             <Download className="w-5 h-5 animate-bounce" />
-            <span>⬇️ بىر كۇنۇپكا بىلەن دەرھال يېڭىلاش</span>
+            <span>⬇️ بىر كۇنۇپكا بىلەن ھازىرلا يېڭىلاش</span>
           </button>
 
           {downloading && (
@@ -145,10 +231,10 @@ export const AppUpdateModal = () => {
           style={{ borderColor: themeColors.border, backgroundColor: themeColors.surfaceVariant }}
         >
           <span className="text-[11px] text-slate-400">
-            رەسمىي بىخەتەر نەشرى
+            ھازىرقى نەشرىڭىز: v{CURRENT_APP_VERSION}
           </span>
           <button
-            onClick={() => setIsDismissed(true)}
+            onClick={handleDismiss}
             className="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition-colors cursor-pointer"
           >
             كېيىن ئەسكەرتىش
